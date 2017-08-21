@@ -8,6 +8,9 @@
 #
 # This software may be used and distributed according to the terms of the
 # GNU General Public License version 2 or any later version.
+import time
+
+from datetime import datetime
 
 
 class Buffer(object):
@@ -16,6 +19,37 @@ class Buffer(object):
 
     def write(self, s):
         self.b += s
+
+
+agescales = [("year", 3600 * 24 * 365), ("month", 3600 * 24 * 30),
+             ("week", 3600 * 24 * 7), ("day", 3600 * 24), ("hour", 3600),
+             ("minute", 60), ("second", 1)]
+
+
+def age(ts):
+    '''turn a timestamp into an age string.'''
+
+    def plural(t, c):
+        if c == 1:
+            return t
+        return t + "s"
+
+    def fmt(t, c):
+        return "%d %s" % (c, plural(t, c))
+
+    now = time.time()
+    then = time.mktime(ts.timetuple()) + ts.microsecond / 1E6
+    if then > now:
+        return 'in the future'
+
+    delta = max(1, int(now - then))
+    if delta > agescales[0][1] * 2:
+        return time.strftime('%Y-%m-%d', time.gmtime(float(ts)))
+
+    for t, s in agescales:
+        n = delta // s
+        if n >= 2 or s == 1:
+            return '%s ago' % fmt(t, n)
 
 
 def asciiedges(seen, rev, parents):
@@ -135,8 +169,9 @@ def ascii(buf, state, type, char, text, coldata):
     nodeline = ["|", " "] * idx
     nodeline.extend([char, " "])
 
-    nodeline.extend(get_nodeline_edges_tail(idx, state[1], ncols, coldiff,
-                                            state[0], fix_nodeline_tail))
+    nodeline.extend(
+        get_nodeline_edges_tail(idx, state[1], ncols, coldiff, state[0],
+                                fix_nodeline_tail))
 
     # shift_interline is the line containing the non-vertical
     # edges between this entry and the next
@@ -189,14 +224,15 @@ def generate(dag, edgefn, current):
     buf = Buffer()
     for node, parents in list(dag):
         if node.get('parent') is not None:
-            age_label = '10 hours ago'  # node.get('timestamp')
+            tm = datetime.strptime(node.get('timestamp'), '%d-%m-%Y %H-%M-%S')
+            age_label = age(tm)
         else:
-            age_label = 'Original'
+            age_label = 'Root'
         line = '[%s] %s' % (node.get('id'), age_label)
         if node.get('id') == current:
             char = '@'
         else:
             char = 'o'
-        ascii(buf, state, 'C', char, [line], edgefn(seen, node.get('id'),
-                                                    parents))
+        ascii(buf, state, 'C', char, [line],
+              edgefn(seen, node.get('id'), parents))
     return buf.b
