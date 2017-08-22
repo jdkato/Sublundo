@@ -1,7 +1,11 @@
+import hashlib
 import os
+
 import sublime
 
 from . import graphmod
+
+VIEW_TO_TREE = {}
 
 
 def walk_nodes(nodes):
@@ -12,10 +16,11 @@ def walk_nodes(nodes):
             yield (node, [])
 
 
-def render(tree, pos):
+def render(tree):
     nodes = tree.nodes()
     dag = sorted(nodes, key=lambda n: n.get('id'), reverse=True)
-    return graphmod.generate(walk_nodes(dag), pos).rstrip()
+    current = tree.head().get('id')
+    return graphmod.generate(walk_nodes(dag), current).rstrip()
 
 
 def buffer(view):
@@ -23,7 +28,25 @@ def buffer(view):
 
 
 def make_session(path):
-    # TODO: better naming scheme
     history = os.path.join(sublime.packages_path(), 'User', 'Sublundo')
-    filename, _ = os.path.splitext(path)
-    return os.path.join(history, filename + '.sublundo-session')
+    m = hashlib.md5()
+    m.update(path.encode())
+    return os.path.join(history, m.hexdigest() + '.sublundo-session')
+
+
+def check_view(view):
+    """
+    @brief      { function_description }
+
+    @param      view  The view
+
+    @return     { description_of_the_return_value }
+    """
+    if not view.file_name():
+        return ('', 0)
+
+    loc = make_session(view.file_name())
+    if loc not in VIEW_TO_TREE:
+        return (loc, 0)
+
+    return (loc, 1)

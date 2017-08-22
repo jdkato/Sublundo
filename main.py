@@ -9,34 +9,30 @@ from .lib import util, libundo
 class SublundoVisualizeCommand(sublime_plugin.TextCommand):
     """
     """
+
     def run(self, edit):
         """
         """
-        pass
-        '''
-        v = sublime.active_window().active_view()
-        loc = util.make_session(v.file_name())
-        if loc not in VIEW_TO_TREE:
-            return
+        active = sublime.active_window().active_view()
+        loc, found = util.check_view(active)
+        if loc and found:
+            t = util.VIEW_TO_TREE[loc]
+            view = sublime.active_window().new_file()
+            view.set_name('Sublundo History')
+            view.settings().set('gutter', False)
+            view.settings().set('word_wrap', False)
 
-        tree = VIEW_TO_TREE[loc]
-        print("HMM", tree)
-        view = sublime.active_window().new_file()
-        view.set_name('Sublundo History')
-        view.settings().set('gutter', False)
-        view.settings().set('word_wrap', False)
+            buf = util.render(t)
+            view.replace(edit, sublime.Region(0, view.size()), buf)
 
-        buf = util.render(tree.nodes(), tree.head().get('id'))
-        view.replace(edit, sublime.Region(0, view.size()), buf)
-
-        view.set_read_only(True)
-        view.set_scratch(True)
-        '''
+            view.set_read_only(True)
+            view.set_scratch(True)
 
 
 class SublundoCommand(sublime_plugin.TextCommand):
     """
     """
+
     def run(self, edit, tree, command):
         """
         """
@@ -52,20 +48,26 @@ class UndoEventListener(sublime_plugin.EventListener):
     """
     @brief      Class for undo event listener.
     """
+
     def on_activated(self, view):
         """
         """
-        pass
-        '''
-        global VIEW_TO_TREE
-        if not view.file_name():
-            return
-
-        loc = util.make_session(view.file_name())
-        if loc not in VIEW_TO_TREE:
+        loc, found = util.check_view(view)
+        if loc and not found:
             t = libundo.PyUndoTree(loc.encode('utf-8'), util.buffer(view))
-            VIEW_TO_TREE[loc] = t
-        '''
+            util.VIEW_TO_TREE[loc] = t
+
+    def on_post_save(self, view):
+        """
+        """
+        loc, found = util.check_view(view)
+        if loc and found:
+            t = util.VIEW_TO_TREE[loc]
+            new = util.buffer(view)
+            old = t.buffer()
+            if old != new:
+                t.insert(new)
+                print(view.file_name(), len(t))
 
     def on_text_command(self, view, command_name, args):
         """
@@ -78,25 +80,10 @@ class UndoEventListener(sublime_plugin.EventListener):
 
         @return     { description_of_the_return_value }
         """
-        if not view.file_name():
-            return None
-
-        loc = util.make_session(view.file_name())
-        '''
-        if loc not in VIEW_TO_TREE:
-            return None
-
-        t = VIEW_TO_TREE[loc]
-
-        if command_name in ('undo', 'redo'):
-            t = libundo.PyUndoTree(loc.encode('utf-8'), util.buffer(view))
-            return ('sublundo', {'tree': t, 'command': command_name})
-        elif command_name == '_enter_normal_mode':
-            t = libundo.PyUndoTree(loc.encode('utf-8'), util.buffer(view))
-            # TODO: make trigger a setting
-            t.insert(util.buffer(view))
-        '''
-
+        loc, found = util.check_view(view)
+        if loc and found and command_name in ('undo', 'redo'):
+            return ('sublundo', {'tree': util.VIEW_TO_TREE[loc],
+                                 'command': command_name})
         return None
 
 
