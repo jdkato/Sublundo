@@ -224,7 +224,8 @@ def generate(dag, current):
     buf = Buffer()
     for node, parents in list(dag):
         if node.get('parent') is not None:
-            tm = datetime.strptime(node.get('timestamp'), '%d-%m-%Y %H-%M-%S')
+            stamp = node.get('timestamp').decode('utf-8')
+            tm = datetime.strptime(stamp, '%d-%m-%Y %H-%M-%S')
             age_label = age(tm)
         else:
             age_label = 'Root'

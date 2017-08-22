@@ -9,7 +9,6 @@ from .lib import util, libundo
 class SublundoVisualizeCommand(sublime_plugin.TextCommand):
     """
     """
-
     def run(self, edit):
         """
         """
@@ -32,10 +31,10 @@ class SublundoVisualizeCommand(sublime_plugin.TextCommand):
 class SublundoCommand(sublime_plugin.TextCommand):
     """
     """
-
-    def run(self, edit, tree, command):
+    def run(self, edit, loc, command):
         """
         """
+        tree = util.VIEW_TO_TREE[loc]
         if command == 'undo':
             buf = tree.undo().decode('utf-8')
         else:
@@ -48,7 +47,6 @@ class UndoEventListener(sublime_plugin.EventListener):
     """
     @brief      Class for undo event listener.
     """
-
     def on_activated(self, view):
         """
         """
@@ -56,18 +54,6 @@ class UndoEventListener(sublime_plugin.EventListener):
         if loc and not found:
             t = libundo.PyUndoTree(loc.encode('utf-8'), util.buffer(view))
             util.VIEW_TO_TREE[loc] = t
-
-    def on_post_save(self, view):
-        """
-        """
-        loc, found = util.check_view(view)
-        if loc and found:
-            t = util.VIEW_TO_TREE[loc]
-            new = util.buffer(view)
-            old = t.buffer()
-            if old != new:
-                t.insert(new)
-                print(view.file_name(), len(t))
 
     def on_text_command(self, view, command_name, args):
         """
@@ -81,13 +67,24 @@ class UndoEventListener(sublime_plugin.EventListener):
         @return     { description_of_the_return_value }
         """
         loc, found = util.check_view(view)
-        if loc and found and command_name in ('undo', 'redo'):
-            return ('sublundo', {'tree': util.VIEW_TO_TREE[loc],
-                                 'command': command_name})
+        if not (loc and found):
+            return None
+        elif command_name == '_enter_normal_mode':
+            t = util.VIEW_TO_TREE[loc]
+            new = util.buffer(view)
+            old = t.buffer()
+            if old != new:
+                t.insert(new)
+                print(view.file_name(), len(t))
+        elif command_name in ('undo', 'redo'):
+            return ('sublundo', {'loc': loc, 'command': command_name})
+
         return None
 
 
 def plugin_loaded():
+    """
+    """
     history = os.path.join(sublime.packages_path(), 'User', 'Sublundo')
     if not os.path.exists(history):
         os.mkdirs(history)
@@ -99,8 +96,5 @@ def plugin_unloaded():
 
     @return     { description_of_the_return_value }
     """
-    pass
-    '''
-    for tree in VIEW_TO_TREE.values():
+    for tree in util.VIEW_TO_TREE.values():
         tree.save()
-    '''
