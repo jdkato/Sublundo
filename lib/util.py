@@ -6,6 +6,7 @@ import sublime
 from . import graphmod
 
 VIEW_TO_TREE = {}
+CHANGE_INDEX = {}
 
 
 def walk_nodes(nodes):

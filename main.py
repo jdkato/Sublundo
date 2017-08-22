@@ -53,6 +53,7 @@ class UndoEventListener(sublime_plugin.EventListener):
         if loc and not found:
             t = libundo.PyUndoTree(loc.encode('utf-8'), util.buffer(view))
             util.VIEW_TO_TREE[loc] = t
+            util.CHANGE_INDEX[loc] = view.change_count()
 
     def on_post_text_command(self, view, command_name, args):
         """
@@ -60,12 +61,10 @@ class UndoEventListener(sublime_plugin.EventListener):
         loc, found = util.check_view(view)
         if not (loc and found):
             return None
-        t = util.VIEW_TO_TREE[loc]
-        new = util.buffer(view)
-        old = t.buffer()
-        if old != new:
-            t.insert(new)
-            print(view.file_name(), len(t))
+
+        if util.CHANGE_INDEX[loc] != view.change_count():
+            util.VIEW_TO_TREE[loc].insert(util.buffer(view))
+            util.CHANGE_INDEX[loc] = view.change_count()
 
     def on_text_command(self, view, command_name, args):
         """
