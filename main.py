@@ -39,7 +39,6 @@ class SublundoCommand(sublime_plugin.TextCommand):
             buf = tree.undo().decode('utf-8')
         else:
             buf = tree.redo().decode('utf-8')
-
         self.view.replace(edit, sublime.Region(0, self.view.size()), buf)
 
 
@@ -55,6 +54,19 @@ class UndoEventListener(sublime_plugin.EventListener):
             t = libundo.PyUndoTree(loc.encode('utf-8'), util.buffer(view))
             util.VIEW_TO_TREE[loc] = t
 
+    def on_post_text_command(self, view, command_name, args):
+        """
+        """
+        loc, found = util.check_view(view)
+        if not (loc and found):
+            return None
+        t = util.VIEW_TO_TREE[loc]
+        new = util.buffer(view)
+        old = t.buffer()
+        if old != new:
+            t.insert(new)
+            print(view.file_name(), len(t))
+
     def on_text_command(self, view, command_name, args):
         """
         @brief      { function_description }
@@ -69,16 +81,8 @@ class UndoEventListener(sublime_plugin.EventListener):
         loc, found = util.check_view(view)
         if not (loc and found):
             return None
-        elif command_name == '_enter_normal_mode':
-            t = util.VIEW_TO_TREE[loc]
-            new = util.buffer(view)
-            old = t.buffer()
-            if old != new:
-                t.insert(new)
-                print(view.file_name(), len(t))
         elif command_name in ('undo', 'redo'):
             return ('sublundo', {'loc': loc, 'command': command_name})
-
         return None
 
 
