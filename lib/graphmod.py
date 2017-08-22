@@ -219,7 +219,7 @@ def ascii(buf, state, type, char, text, coldata):
     state[1] = idx
 
 
-def generate(dag, edgefn, current):
+def generate(dag, current):
     seen, state = [], [0, 0]
     buf = Buffer()
     for node, parents in list(dag):
@@ -234,5 +234,5 @@ def generate(dag, edgefn, current):
         else:
             char = 'o'
         ascii(buf, state, 'C', char, [line],
-              edgefn(seen, node.get('id'), parents))
+              asciiedges(seen, node.get('id'), parents))
     return buf.b
