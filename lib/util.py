@@ -7,7 +7,7 @@ from . import graphmod
 
 SETTING_FILE = 'Sublundo.sublime-settings'
 VIEW_TO_TREE = {}
-CHANGE_INDEX = {}
+VIS_TO_VIEW = {}
 
 
 def get_setting(name):
@@ -76,11 +76,4 @@ def check_view(view):
 
     @return     { description_of_the_return_value }
     """
-    if not view.file_name():
-        return ('', 0)
-
-    loc = make_session(view.file_name())
-    if loc not in VIEW_TO_TREE:
-        return (loc, 0)
-
-    return (loc, 1)
+    return view.id() in VIEW_TO_TREE

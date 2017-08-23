@@ -3,7 +3,7 @@
 # http://www.sublimetext.com/docs/3/syntax.html
 name: Sublundo
 hidden: true
-scope: sublundo.tree
+scope: text.sublundo.tree
 contexts:
   main:
     - match: '(o)  (\d+) (.+)$'

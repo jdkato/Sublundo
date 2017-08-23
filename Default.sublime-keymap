@@ -1,0 +1,66 @@
+[
+    {
+        "keys": [
+            "j"
+        ],
+        "command": "sublundo_next_node",
+        "args": {
+            "forward": false
+        },
+        "context": [
+            {
+                "key": "selector",
+                "operator": "equal",
+                "operand": "text.sublundo.tree"
+            }
+        ]
+    },
+    {
+        "keys": [
+            "down"
+        ],
+        "command": "sublundo_next_node",
+        "args": {
+            "forward": false
+        },
+        "context": [
+            {
+                "key": "selector",
+                "operator": "equal",
+                "operand": "text.sublundo.tree"
+            }
+        ]
+    },
+    {
+        "keys": [
+            "k"
+        ],
+        "command": "sublundo_next_node",
+        "args": {
+            "forward": true
+        },
+        "context": [
+            {
+                "key": "selector",
+                "operator": "equal",
+                "operand": "text.sublundo.tree"
+            }
+        ]
+    },
+    {
+        "keys": [
+            "up"
+        ],
+        "command": "sublundo_next_node",
+        "args": {
+            "forward": true
+        },
+        "context": [
+            {
+                "key": "selector",
+                "operator": "equal",
+                "operand": "text.sublundo.tree"
+            }
+        ]
+    }
+]
