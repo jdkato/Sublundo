@@ -29,10 +29,10 @@ class SublundoVisualizeCommand(sublime_plugin.TextCommand):
 
 
 class SublundoCommand(sublime_plugin.TextCommand):
-    """
+    """Sublundo calls a given PyUndoTree's `undo` or `redo` method.
     """
     def run(self, edit, loc, command):
-        """
+        """Update the current view with the result of calling undo or redo.
         """
         tree = util.VIEW_TO_TREE[loc]
         if command == 'undo':
@@ -44,10 +44,11 @@ class SublundoCommand(sublime_plugin.TextCommand):
 
 class UndoEventListener(sublime_plugin.EventListener):
     """
-    @brief      Class for undo event listener.
+    UndoEventListener manages PyUndoTrees on a view-specific basis: each view
+    is assigned its own tree, which controls its undo/redo functionality.
     """
     def on_activated(self, view):
-        """
+        """Initialize a new PyUndoTree for new buffers.
         """
         loc, found = util.check_view(view)
         if loc and not found:
@@ -56,48 +57,32 @@ class UndoEventListener(sublime_plugin.EventListener):
             util.CHANGE_INDEX[loc] = view.change_count()
 
     def on_post_text_command(self, view, command_name, args):
-        """
+        """Update the view's PyUndoTree when there has been a buffer change.
         """
         loc, found = util.check_view(view)
-        if not (loc and found):
-            return None
-
-        if util.CHANGE_INDEX[loc] != view.change_count():
+        if loc and found and util.CHANGE_INDEX[loc] != view.change_count():
             util.VIEW_TO_TREE[loc].insert(util.buffer(view))
             util.CHANGE_INDEX[loc] = view.change_count()
 
     def on_text_command(self, view, command_name, args):
-        """
-        @brief      { function_description }
-
-        @param      self          The object
-        @param      view          The view
-        @param      command_name  The command name
-        @param      args          The arguments
-
-        @return     { description_of_the_return_value }
+        """Run `sublundo` instead of the built-in undo/redo commands.
         """
         loc, found = util.check_view(view)
-        if not (loc and found):
-            return None
-        elif command_name in ('undo', 'redo'):
+        if loc and found and command_name in ('undo', 'redo'):
             return ('sublundo', {'loc': loc, 'command': command_name})
         return None
 
 
 def plugin_loaded():
-    """
+    """Ensure that our session storage location exists.
     """
     history = os.path.join(sublime.packages_path(), 'User', 'Sublundo')
     if not os.path.exists(history):
-        os.mkdirs(history)
+        os.makedirs(history)
 
 
 def plugin_unloaded():
-    """
-    @brief      { function_description }
-
-    @return     { description_of_the_return_value }
+    """Save our session data.
     """
     for tree in util.VIEW_TO_TREE.values():
         tree.save()
