@@ -1,0 +1,9 @@
+# SYNTAX TEST "Packages/Sublundo/Sublundo.sublime-syntax"
+
+o  [2] 11 hours ago
+#      ^ comment.sublundo.tree.label
+|
+o  [1] Root
+#   ^ constant.other.sublundo.tree.index
+#      ^ comment.sublundo.tree.label
+

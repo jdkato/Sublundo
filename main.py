@@ -10,25 +10,26 @@ from .lib import (
 
 
 class SublundoVisualizeCommand(sublime_plugin.TextCommand):
-    """
+    """SublundoVisualize manages the display and navigation of the UndoTree.
     """
     def run(self, edit):
-        """
+        """Display the tree.
         """
         active = sublime.active_window().active_view()
         loc, found = util.check_view(active)
         if loc and found:
-            t = util.VIEW_TO_TREE[loc]
             view = sublime.active_window().new_file()
-            view.set_name('Sublundo History')
+            view.set_name('Sublundo: History View')
             view.settings().set('gutter', False)
             view.settings().set('word_wrap', False)
 
-            buf = util.render(t)
+            buf = util.render(util.VIEW_TO_TREE[loc])
             view.replace(edit, sublime.Region(0, view.size()), buf)
 
+            view.set_syntax_file('Packages/Sublundo/Sublundo.sublime-syntax')
             view.set_read_only(True)
             view.set_scratch(True)
+            view.sel().clear()
 
 
 class SublundoCommand(sublime_plugin.TextCommand):

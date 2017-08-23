@@ -16,11 +16,14 @@ def load_session(path, buf):
     """
     """
     if os.path.exists(path):
-        with open(path, 'rb') as loc:
-            canidate = pickle.load(loc)
-            old = canidate.text()
-        if len(old) == len(buf) and old == buf:
-            return canidate, True
+        try:
+            with open(path, 'rb') as loc:
+                canidate = pickle.load(loc)
+                old = canidate.text()
+            if len(old) == len(buf) and old == buf:
+                return canidate, True
+        except EOFError:
+            pass
     return UndoTree(path, buf), False
 
 

@@ -1,0 +1,18 @@
+%YAML 1.2
+---
+# http://www.sublimetext.com/docs/3/syntax.html
+name: Sublundo
+hidden: true
+scope: sublundo.tree
+contexts:
+  main:
+    - match: '(o)  (\d+) (.+)$'
+      captures:
+        1: meta.sublundo.tree.node
+        2: constant.other.sublundo.tree.index
+        3: comment.sublundo.tree.label
+    - match: '(@)  (\[\d+\]) (.+)$'
+      captures:
+        1: keyword.other.sublundo.tree.position
+        2: constant.other.sublundo.tree.index
+        3: comment.sublundo.tree.label

@@ -228,11 +228,14 @@ def generate(dag, current):
             age_label = age(tm)
         else:
             age_label = 'Root'
-        line = '[%s] %s' % (node.idx, age_label)
+
         if node.idx == current:
             char = '@'
+            line = '[%s] %s' % (node.idx, age_label)
         else:
             char = 'o'
+            line = '%s %s' % (node.idx, age_label)
+
         ascii(buf, state, 'C', char, [line],
               asciiedges(seen, node.idx, parents))
     return buf.b
