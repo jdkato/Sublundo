@@ -3,8 +3,8 @@ import unittest
 
 from lib.tree import (
     UndoTree,
-    load_tree,
-    save_tree
+    load_session,
+    save_session
 )
 
 
@@ -40,7 +40,7 @@ class UndoTreeTestCase(unittest.TestCase):
         #             1 (@)
         #              \
         #               2
-        self.assertEqual(t.undo(), 'My name is Joe.')
+        self.assertEqual(t.undo()[0], 'My name is Joe.')
         self.assertEqual(t.head().idx, 1)
 
         # Fourth state -- back to 'B':
@@ -48,7 +48,7 @@ class UndoTreeTestCase(unittest.TestCase):
         #             1
         #              \
         #               2 (@)
-        self.assertEqual(t.redo(), 'My name is actually Bob.')
+        self.assertEqual(t.redo()[0], 'My name is actually Bob.')
         self.assertEqual(t.head().idx, 2)
 
     def test_navigate_branch(self):
@@ -69,7 +69,7 @@ class UndoTreeTestCase(unittest.TestCase):
         self.assertEqual(t.head().idx, 2)
         self.assertEqual(t.head().parent.idx, 1)
 
-        self.assertEqual(t.undo(), 'My name is Joe.')
+        self.assertEqual(t.undo()[0], 'My name is Joe.')
 
         t.insert('My name is Bob.')
         self.assertEqual(t.text(), 'My name is Bob.')
@@ -81,10 +81,10 @@ class UndoTreeTestCase(unittest.TestCase):
         #             1
         #            / \
         #           3   2 (@)
-        self.assertEqual(t.undo(), 'My name is Joe.')
+        self.assertEqual(t.undo()[0], 'My name is Joe.')
         self.assertEqual(t.head().idx, 1)
 
-        self.assertEqual(t.redo(), 'My name is actually Bob.')
+        self.assertEqual(t.redo()[0], 'My name is actually Bob.')
         self.assertEqual(t.head().idx, 2)
 
         # Fourth state --  back to '3':
@@ -92,31 +92,33 @@ class UndoTreeTestCase(unittest.TestCase):
         #            1
         #           / \
         #      (@) 3   2
-        self.assertEqual(t.undo(), 'My name is Joe.')
+        self.assertEqual(t.undo()[0], 'My name is Joe.')
 
-        t.switch_branch()
+        t.switch_branch(1)
 
-        self.assertEqual(t.redo(), 'My name is Bob.')
+        self.assertEqual(t.redo()[0], 'My name is Bob.')
 
     def test_serialize_valid(self):
         t = new_tree('test.sublundo-session')
 
         t.insert('Hello from libundo (C++)!')
         self.assertEqual(len(t), 1)
-        save_tree(t, 'test.sublundo-session')
+        save_session(t, 'test.sublundo-session')
 
-        t2 = load_tree('test.sublundo-session', 'Hello from libundo (C++)!')
-        self.assertEqual(len(t2), 1)
+        t2 = load_session('test.sublundo-session', 'Hello from libundo (C++)!')
+        self.assertEqual(len(t2[0]), 1)
+        self.assertEqual(t2[1], True)
 
     def test_serialize_invalid(self):
         t = new_tree('test.sublundo-session')
 
         t.insert('Hello from libundo (C++)!')
         self.assertEqual(len(t), 1)
-        save_tree(t, 'test.sublundo-session')
+        save_session(t, 'test.sublundo-session')
 
-        t2 = load_tree('test.sublundo-session', 'Hello from libundo!')
-        self.assertEqual(len(t2), 0)
+        t2 = load_session('test.sublundo-session', 'Hello from libundo!')
+        self.assertEqual(len(t2[0]), 0)
+        self.assertEqual(t2[1], False)
 
 
 if __name__ == '__main__':

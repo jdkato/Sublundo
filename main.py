@@ -29,6 +29,7 @@ class SublundoVisualizeCommand(sublime_plugin.TextCommand):
             if output is None:
                 # We don't have an output view, so it's an initial draw.
                 window = sublime.active_window()
+                old = window.active_view()
                 view = window.new_file()
 
                 nag, group = util.set_active_group(window, view, 'left')
@@ -49,7 +50,13 @@ class SublundoVisualizeCommand(sublime_plugin.TextCommand):
                 view.sel().clear()
 
                 window.run_command('hide_overlay')
+                window.focus_view(old)
                 window.focus_view(view)
+                if not window.find_output_panel('sublundo'):
+                    p = window.create_output_panel('sublundo', False)
+                    p.assign_syntax('Packages/Diff/Diff.sublime-syntax')
+                    # p.sel().clear()
+                window.run_command('show_panel', {'panel': 'output.sublundo'})
             else:
                 # We were given an output view, so it's a re-draw.
                 view = sublime.View(output)
@@ -72,10 +79,14 @@ class SublundoCommand(sublime_plugin.TextCommand):
         """
         t = util.VIEW_TO_TREE[self.view.id()]['tree']
         if command == 'undo':
-            buf = t.undo()
+            buf, diff = t.undo()
         else:
-            buf = t.redo()
+            buf, diff = t.redo()
+
         self.view.replace(edit, sublime.Region(0, self.view.size()), buf)
+        p = sublime.active_window().find_output_panel('sublundo')
+        if p and diff:
+            p.replace(edit, sublime.Region(0, p.size()), diff)
 
 
 class UndoEventListener(sublime_plugin.EventListener):
@@ -89,18 +100,17 @@ class UndoEventListener(sublime_plugin.EventListener):
         name = view.file_name()
         if name and not util.check_view(view):
             loc = util.make_session(name)
-            t, loaded = tree.load_session(loc, util.buffer(view))
-            util.VIEW_TO_TREE[view.id()] = {
-                'tree': t,
-                'loc': loc
-            }
+            buf = util.buffer(view)
+            t, loaded = tree.load_session(loc, buf)
             if loaded:
                 util.debug('Loaded session for {0}.'.format(name))
+            else:
+                t.insert(buf)
+            util.VIEW_TO_TREE[view.id()] = {'tree': t, 'loc': loc}
 
     def on_close(self, view):
         """
         """
-        print(view.scope_name(0))
         if 'text.sublundo.tree' not in view.scope_name(0):
             return
 
@@ -114,6 +124,7 @@ class UndoEventListener(sublime_plugin.EventListener):
                     "cells": [[0, 0, 1, 1]]
                 }
             ), 300)
+        w.run_command('hide_panel', {'panel': 'output.sublundo'})
 
     def on_pre_close(self, view):
         """

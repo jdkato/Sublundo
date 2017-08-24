@@ -1902,6 +1902,7 @@ class patch_obj:
       elif op == diff_match_patch.DIFF_EQUAL:
         text.append(" ")
       # High ascii will raise UnicodeDecodeError.  Use Unicode instead.
-      data = data.encode("utf-8")
-      text.append(urllib.parse.quote(data, "!~*'();/?:@&=+$,# ") + "\n")
+      # data = data.encode("utf-8")
+      # text.append(urllib.parse.quote(data, "!~*'();/?:@&=+$,# ") + "\n")
+      text.append(data + "\n")
     return "".join(text)

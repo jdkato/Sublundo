@@ -30,7 +30,6 @@ def load_session(path, buf):
 class Node:
     """
     """
-
     def __init__(self, idx, parent, timestamp):
         self.idx = idx
         self.parent = parent
@@ -42,7 +41,6 @@ class Node:
 class UndoTree:
     """
     """
-
     def __init__(self, path, buf):
         """
         """
@@ -50,12 +48,10 @@ class UndoTree:
         self._total = 0
         self._n_idx = 0
         self._b_idx = 0
-        self._cur_buf = None
+        self._buf = None
         self._undo_file = None
         self._dmp = diff_match_patch()
         self._index = {}
-
-        self.insert(buf)
 
     def __len__(self):
         return self._total
@@ -76,7 +72,7 @@ class UndoTree:
             self._root = to_add
         else:
             parent = self._find_parent()
-            patches = self._patch(self._cur_buf, buf)
+            patches = self._patch(self._buf, buf)
 
             to_add.parent = parent
             to_add.patches[parent.idx] = patches[1]
@@ -85,24 +81,26 @@ class UndoTree:
             parent.patches[self._total] = patches[0]
 
         self._n_idx = to_add.idx
-        self._cur_buf = buf
+        self._buf = buf
         self._index[self._total] = to_add
 
     def undo(self):
         """
         """
+        diff = None
         parent = self.head().parent
         if parent is not None:
-            self._cur_buf = self._apply_patch(parent.idx)
-        return self._cur_buf
+            self._buf, diff = self._apply_patch(parent.idx)
+        return self._buf, diff
 
     def redo(self):
         """
         """
+        diff = None
         n = self.head()
         if len(n.children) > 0:
-            self._cur_buf = self._apply_patch(n.children[self._b_idx].idx)
-        return self._cur_buf
+            self._buf, diff = self._apply_patch(n.children[self._b_idx].idx)
+        return self._buf, diff
 
     def branch(self):
         """
@@ -112,7 +110,7 @@ class UndoTree:
     def text(self):
         """
         """
-        return self._cur_buf
+        return self._buf
 
     def nodes(self):
         """
@@ -124,13 +122,19 @@ class UndoTree:
         """
         return self._search(self._n_idx)
 
-    def switch_branch(self):
+    def switch_branch(self, direction):
         """
         """
-        if self._b_idx + 1 < len(self.head().children):
+        if direction and self._b_idx + 1 < len(self.head().children):
             self._b_idx = self._b_idx + 1
+        elif not direction and self._b_idx - 1 <= 0:
+            self._b_idx = self._b_idx - 1
         else:
-            self._b_idx = 0
+            upper = len(self.head().children) - 1
+            if not direction and upper > 0:
+                self._b_idx = upper
+            else:
+                self._b_idx = 0
 
     def _search(self, idx):
         """
@@ -160,14 +164,14 @@ class UndoTree:
         @return     { description_of_the_return_value }
         """
         d1 = self._dmp.diff_main(s1, s2)
-        p1 = self._dmp.patch_toText(self._dmp.patch_make(s1, d1))
+        p1 = self._dmp.patch_make(s1, d1)
 
         for i in range(len(d1)):
             le = list(d1[i])
             le[0] = le[0] * -1
             d1[i] = le
 
-        p2 = self._dmp.patch_toText(self._dmp.patch_make(s2, d1))
+        p2 = self._dmp.patch_make(s2, d1)
         return [p1, p2]
 
     def _apply_patch(self, idx):
@@ -180,10 +184,9 @@ class UndoTree:
         @return     { description_of_the_return_value }
         """
         patch = self.head().patches[idx]
-        out = self._dmp.patch_apply(
-            self._dmp.patch_fromText(patch), self._cur_buf)
+        out = self._dmp.patch_apply(patch, self._buf)
         self._n_idx = idx
-        return out[0]
+        return out[0], self._dmp.patch_toText(patch)
 
     def _collect(self, root):
         """
