@@ -1,3 +1,21 @@
+"""main.py
+
+This module is the main entry point into the package. A high-level summary of
+the plugin follows:
+
+    * Watch for view `on_activated` events, assigning each view its own
+      UndoTree, which we store in `util.VIEW_TO_TREE` for easy access.
+
+    * Watch for an insertion trigger (`on_modified`, by default) to insert the
+      current view's contents into the associated UndoTree.
+
+    * Watch for the 'undo', 'redo_or_repeat', or 'redo' commands and overwrite
+      them with `sublundo`, which calls either `tree.undo()` or `tree.redo()`
+      on the current view.
+
+We also implement a `sublundo_visualize` command, which presents a Gundo-like
+visualization of the underlying UndoTree.
+"""
 import os
 
 import sublime
@@ -7,28 +25,79 @@ from .lib import (util, tree)
 
 
 class SublundoNextNodeCommand(sublime_plugin.TextCommand):
-    def run(self, edit, forward=None):
+    """SublundoNextNode implements movement in the UndoTree visualization.
+
+    This command is bound to the up (or 'j') and down (or 'k') keys by default.
+    """
+    def run(self, edit, forward=0):
+        """Move to the next node in the tree, if available.
+
+        Args:
+            forward (int): Indicates whether we're moving forward or backward.
+
+        Examples:
+
+            @
+             \
+              2
+
+        <redo>
+
+            1
+             \
+              @
+        """
+        # We first grab the ID of the current visualization's view. This tells
+        # the `sublundo_visualize` command that we want a re-draw (vs. a new
+        # draw).
         output = sublime.active_window().active_view().id()
+        # `b_view` is the view associated with the actual text buffer we're
+        # changing.
         b_view = util.VIS_TO_VIEW[output]
         if forward:
             b_view.run_command('sublundo', {'command': 'redo'})
         else:
             b_view.run_command('sublundo', {'command': 'undo'})
+
         b_view.run_command('sublundo_visualize', {'output': output})
 
 
 class SublundoSwitchBranchCommand(sublime_plugin.TextCommand):
+    """SublundoSwitchBranch controls branch switching in a visualization.
+    """
     def run(self, edit, forward=0):
+        """Switch to the next branch (as indicated by `forward`), if possible.
+
+        Args:
+            forward (int): Indicates whether to move to the next or previous
+            branch.
+
+        Examples:
+
+             @                         1
+            / \     -> <redo> ->      / \
+           3   2                     3   @
+
+        <undo>
+        <switch_branch>
+
+             @                         1
+            / \     -> <redo> ->      / \
+           3   2                     @   2
+        """
         output = sublime.active_window().active_view().id()
         b_view = util.VIS_TO_VIEW[output]
         util.VIEW_TO_TREE[b_view.id()]['tree'].switch_branch(forward)
 
 
 class SublundoVisualizeCommand(sublime_plugin.TextCommand):
-    """SublundoVisualize manages the display and navigation of the UndoTree.
+    """SublundoVisualize manages the display the UndoTree and its diff preview.
     """
-    def run(self, edit, output=None):
-        """Display the tree.
+    def run(self, edit, output=False):
+        """Display the tree and its diff preview.
+
+        Args:
+            output (bool): Indicates if we're re-drawing the tree.
         """
         if util.check_view(self.view):
             # Find our visualization view:
@@ -38,10 +107,11 @@ class SublundoVisualizeCommand(sublime_plugin.TextCommand):
                 old = window.active_view()
                 view = window.new_file()
 
+                # Set the layout.
+                # TODO: make this a settings.
                 nag, group = util.set_active_group(window, view, 'left')
 
                 util.VIS_TO_VIEW[view.id()] = self.view
-
                 view.set_name('Sublundo: History View')
                 view.settings().set('gutter', False)
                 view.settings().set('word_wrap', False)
@@ -58,9 +128,11 @@ class SublundoVisualizeCommand(sublime_plugin.TextCommand):
                 window.run_command('hide_overlay')
                 window.focus_view(old)
                 window.focus_view(view)
+
                 if not window.find_output_panel('sublundo'):
                     p = window.create_output_panel('sublundo', False)
                     p.assign_syntax('Packages/Diff/Diff.sublime-syntax')
+
                 window.run_command('show_panel', {'panel': 'output.sublundo'})
             else:
                 # We were given an output view, so it's a re-draw.
@@ -70,17 +142,22 @@ class SublundoVisualizeCommand(sublime_plugin.TextCommand):
                 view.set_read_only(False)
                 view.replace(edit, sublime.Region(0, view.size()), buf)
                 view.set_read_only(True)
+
                 sublime.active_window().focus_view(view)
 
+            # Move to the active node.
             pos = view.find_by_selector('keyword.other.sublundo.tree.position')
             view.show(pos[0], True)
 
 
 class SublundoCommand(sublime_plugin.TextCommand):
-    """Sublundo calls a given PyUndoTree's `undo` or `redo` method.
+    """Sublundo calls a given UndoTree's `undo` or `redo` method.
     """
     def run(self, edit, command):
-        """Update the current view with the result of calling undo or redo.
+        """Update the current view with the result of calling `undo` or `redo`.
+
+        Args:
+            command (str): 'undo', 'redo', or 'redo_or_repeat'.
         """
         t = util.VIEW_TO_TREE[self.view.id()]['tree']
         if command == 'undo':
@@ -90,6 +167,7 @@ class SublundoCommand(sublime_plugin.TextCommand):
 
         self.view.replace(edit, sublime.Region(0, self.view.size()), buf)
         if pos:
+            # Draw an outline around the line that's changing.
             line = self.view.line(pos - 1)
             self.view.add_regions(
                 'sublundo',
@@ -105,12 +183,10 @@ class SublundoCommand(sublime_plugin.TextCommand):
 
 
 class UndoEventListener(sublime_plugin.EventListener):
-    """
-    UndoEventListener manages UndoTrees on a view-specific basis: each view
-    is assigned its own tree, which controls its undo/redo functionality.
+    """UndoEventListener manages UndoTrees on a view-specific basis.
     """
     def on_activated(self, view):
-        """Initialize a new UndoTree for new buffers.
+        """Initialize a new UndoTree for the view, if we haven't already.
         """
         name = view.file_name()
         if name and not util.check_view(view):
@@ -124,7 +200,7 @@ class UndoEventListener(sublime_plugin.EventListener):
             util.VIEW_TO_TREE[view.id()] = {'tree': t, 'loc': loc}
 
     def on_close(self, view):
-        """
+        """Clean up the visualization.
         """
         if 'text.sublundo.tree' not in view.scope_name(0):
             return
@@ -144,7 +220,9 @@ class UndoEventListener(sublime_plugin.EventListener):
             v.erase_regions('sublundo')
 
     def on_pre_close(self, view):
-        """
+        """Save the current sessions.
+
+        TODO: work on this.
         """
         '''
         loc, found = util.check_view(view)
@@ -153,9 +231,10 @@ class UndoEventListener(sublime_plugin.EventListener):
         '''
 
     def on_modified(self, view):
-        """Update the view's PyUndoTree when there has been a buffer change.
+        """Update the view's UndoTree when there has been a buffer change.
         """
         cmd = view.command_history(0, True)[0]
+        # We don't include our own changes.
         if util.check_view(view) and cmd not in ('sublundo'):
             util.VIEW_TO_TREE[view.id()]['tree'].insert(
                 util.buffer(view),
@@ -163,7 +242,7 @@ class UndoEventListener(sublime_plugin.EventListener):
             )
 
     def on_text_command(self, view, command_name, args):
-        """Run `sublundo` instead of the built-in undo/redo commands.
+        """Run `sublundo` instead of the built-in `undo` and `redo` commands.
         """
         triggers = ('undo', 'redo_or_repeat', 'redo')
         if util.check_view(view) and command_name in triggers:
