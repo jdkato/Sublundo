@@ -20,6 +20,7 @@ class SublundoNextNodeCommand(sublime_plugin.TextCommand):
 class SublundoVisualizeCommand(sublime_plugin.TextCommand):
     """SublundoVisualize manages the display and navigation of the UndoTree.
     """
+
     def run(self, edit, output=None):
         """Display the tree.
         """
@@ -27,7 +28,11 @@ class SublundoVisualizeCommand(sublime_plugin.TextCommand):
             # Find our visualization view:
             if output is None:
                 # We don't have an output view, so it's an initial draw.
-                view = sublime.active_window().new_file()
+                window = sublime.active_window()
+                view = window.new_file()
+
+                nag, group = util.set_active_group(window, view, 'left')
+
                 util.VIS_TO_VIEW[view.id()] = self.view
 
                 view.set_name('Sublundo: History View')
@@ -42,6 +47,9 @@ class SublundoVisualizeCommand(sublime_plugin.TextCommand):
                 view.set_read_only(True)
                 view.set_scratch(True)
                 view.sel().clear()
+
+                window.run_command('hide_overlay')
+                window.focus_view(view)
             else:
                 # We were given an output view, so it's a re-draw.
                 view = sublime.View(output)
@@ -58,6 +66,7 @@ class SublundoVisualizeCommand(sublime_plugin.TextCommand):
 class SublundoCommand(sublime_plugin.TextCommand):
     """Sublundo calls a given PyUndoTree's `undo` or `redo` method.
     """
+
     def run(self, edit, command):
         """Update the current view with the result of calling undo or redo.
         """
@@ -87,6 +96,24 @@ class UndoEventListener(sublime_plugin.EventListener):
             }
             if loaded:
                 util.debug('Loaded session for {0}.'.format(name))
+
+    def on_close(self, view):
+        """
+        """
+        print(view.scope_name(0))
+        if 'text.sublundo.tree' not in view.scope_name(0):
+            return
+
+        w = sublime.active_window()
+        single = not w.views_in_group(0) or not w.views_in_group(1)
+        if w.num_groups() == 2 and single:
+            sublime.set_timeout(lambda: w.set_layout(
+                {
+                    "cols": [0.0, 1.0],
+                    "rows": [0.0, 1.0],
+                    "cells": [[0, 0, 1, 1]]
+                }
+            ), 300)
 
     def on_pre_close(self, view):
         """
