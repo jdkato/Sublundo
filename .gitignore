@@ -98,3 +98,6 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+*.sublime-workspace
+*.sublundo-session
