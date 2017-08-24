@@ -6,6 +6,7 @@ import sublime
 from . import graphmod
 
 SETTING_FILE = 'Sublundo.sublime-settings'
+CHANGE_INDEX = 0
 VIEW_TO_TREE = {}
 VIS_TO_VIEW = {}
 

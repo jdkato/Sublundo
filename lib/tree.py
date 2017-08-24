@@ -7,6 +7,7 @@ from .diff_match_patch import diff_match_patch
 
 def save_session(session, path):
     """
+    ddddd
     """
     with open(path, 'wb') as loc:
         pickle.dump(session, loc, pickle.HIGHEST_PROTOCOL)
@@ -30,12 +31,13 @@ def load_session(path, buf):
 class Node:
     """
     """
-    def __init__(self, idx, parent, timestamp):
+    def __init__(self, idx, parent, timestamp, pos=None):
         self.idx = idx
         self.parent = parent
         self.timestamp = timestamp
         self.children = []
         self.patches = {}
+        self.position = pos
 
 
 class UndoTree:
@@ -56,7 +58,7 @@ class UndoTree:
     def __len__(self):
         return self._total
 
-    def insert(self, buf):
+    def insert(self, buf, pos=None):
         """
         @brief      "{ function_description }"
 
@@ -67,7 +69,7 @@ class UndoTree:
         """
         self._total = self._total + 1
         tm = datetime.now().strftime('%d-%m-%Y %H-%M-%S')
-        to_add = Node(self._total, None, tm)
+        to_add = Node(self._total, None, tm, pos)
         if self._root is None:
             self._root = to_add
         else:
@@ -88,19 +90,24 @@ class UndoTree:
         """
         """
         diff = None
+        pos = None
         parent = self.head().parent
         if parent is not None:
             self._buf, diff = self._apply_patch(parent.idx)
-        return self._buf, diff
+            pos = parent.position
+        return self._buf, diff, pos
 
     def redo(self):
         """
         """
         diff = None
+        pos = None
         n = self.head()
         if len(n.children) > 0:
-            self._buf, diff = self._apply_patch(n.children[self._b_idx].idx)
-        return self._buf, diff
+            target = n.children[self._b_idx]
+            self._buf, diff = self._apply_patch(target.idx)
+            pos = target.position
+        return self._buf, diff, pos
 
     def branch(self):
         """
@@ -186,7 +193,8 @@ class UndoTree:
         patch = self.head().patches[idx]
         out = self._dmp.patch_apply(patch, self._buf)
         self._n_idx = idx
-        return out[0], self._dmp.patch_toText(patch)
+        text = self._dmp.patch_toText(patch)
+        return out[0], bytes(text, 'utf-8').decode('utf-8')
 
     def _collect(self, root):
         """
@@ -195,7 +203,7 @@ class UndoTree:
         @param      self  The object
         @param      root  The root
 
-        @return     { description_of_the_return_value }
+        @return     { description_of_the_return_va
         """
         nodes = []
         if root is not None:

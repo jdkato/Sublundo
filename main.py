@@ -17,10 +17,16 @@ class SublundoNextNodeCommand(sublime_plugin.TextCommand):
         b_view.run_command('sublundo_visualize', {'output': output})
 
 
+class SublundoSwitchBranchCommand(sublime_plugin.TextCommand):
+    def run(self, edit, forward=0):
+        output = sublime.active_window().active_view().id()
+        b_view = util.VIS_TO_VIEW[output]
+        util.VIEW_TO_TREE[b_view.id()]['tree'].switch_branch(forward)
+
+
 class SublundoVisualizeCommand(sublime_plugin.TextCommand):
     """SublundoVisualize manages the display and navigation of the UndoTree.
     """
-
     def run(self, edit, output=None):
         """Display the tree.
         """
@@ -55,7 +61,6 @@ class SublundoVisualizeCommand(sublime_plugin.TextCommand):
                 if not window.find_output_panel('sublundo'):
                     p = window.create_output_panel('sublundo', False)
                     p.assign_syntax('Packages/Diff/Diff.sublime-syntax')
-                    # p.sel().clear()
                 window.run_command('show_panel', {'panel': 'output.sublundo'})
             else:
                 # We were given an output view, so it's a re-draw.
@@ -65,6 +70,7 @@ class SublundoVisualizeCommand(sublime_plugin.TextCommand):
                 view.set_read_only(False)
                 view.replace(edit, sublime.Region(0, view.size()), buf)
                 view.set_read_only(True)
+                sublime.active_window().focus_view(view)
 
             pos = view.find_by_selector('keyword.other.sublundo.tree.position')
             view.show(pos[0], True)
@@ -73,17 +79,26 @@ class SublundoVisualizeCommand(sublime_plugin.TextCommand):
 class SublundoCommand(sublime_plugin.TextCommand):
     """Sublundo calls a given PyUndoTree's `undo` or `redo` method.
     """
-
     def run(self, edit, command):
         """Update the current view with the result of calling undo or redo.
         """
         t = util.VIEW_TO_TREE[self.view.id()]['tree']
         if command == 'undo':
-            buf, diff = t.undo()
+            buf, diff, pos = t.undo()
         else:
-            buf, diff = t.redo()
+            buf, diff, pos = t.redo()
 
         self.view.replace(edit, sublime.Region(0, self.view.size()), buf)
+        if pos:
+            line = self.view.line(pos - 1)
+            self.view.add_regions(
+                'sublundo',
+                [line],
+                'comment',
+                '',
+                sublime.DRAW_NO_FILL)
+            self.view.show(line)
+
         p = sublime.active_window().find_output_panel('sublundo')
         if p and diff:
             p.replace(edit, sublime.Region(0, p.size()), diff)
@@ -125,6 +140,8 @@ class UndoEventListener(sublime_plugin.EventListener):
                 }
             ), 300)
         w.run_command('hide_panel', {'panel': 'output.sublundo'})
+        for v in w.views():
+            v.erase_regions('sublundo')
 
     def on_pre_close(self, view):
         """
@@ -140,7 +157,10 @@ class UndoEventListener(sublime_plugin.EventListener):
         """
         cmd = view.command_history(0, True)[0]
         if util.check_view(view) and cmd not in ('sublundo'):
-            util.VIEW_TO_TREE[view.id()]['tree'].insert(util.buffer(view))
+            util.VIEW_TO_TREE[view.id()]['tree'].insert(
+                util.buffer(view),
+                view.sel()[0].begin()
+            )
 
     def on_text_command(self, view, command_name, args):
         """Run `sublundo` instead of the built-in undo/redo commands.
