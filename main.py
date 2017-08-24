@@ -15,6 +15,8 @@ the plugin follows:
 
 We also implement a `sublundo_visualize` command, which presents a Gundo-like
 visualization of the underlying UndoTree.
+
+
 """
 import os
 
@@ -101,7 +103,7 @@ class SublundoVisualizeCommand(sublime_plugin.TextCommand):
         """
         if util.check_view(self.view):
             # Find our visualization view:
-            if output is None:
+            if not output:
                 # We don't have an output view, so it's an initial draw.
                 window = sublime.active_window()
                 old = window.active_view()
@@ -147,7 +149,11 @@ class SublundoVisualizeCommand(sublime_plugin.TextCommand):
 
             # Move to the active node.
             pos = view.find_by_selector('keyword.other.sublundo.tree.position')
-            view.show(pos[0], True)
+            if pos:
+                view.show(pos[0], True)
+            else:
+                t = util.VIEW_TO_TREE[self.view.id()]['tree']
+                util.debug('No active node? Total size = {0}.'.format(len(t)))
 
 
 class SublundoCommand(sublime_plugin.TextCommand):

@@ -122,7 +122,7 @@ class UndoTree:
     def nodes(self):
         """
         """
-        return self._collect(self._root)
+        return list(self._index.values())
 
     def head(self):
         """
@@ -195,19 +195,3 @@ class UndoTree:
         self._n_idx = idx
         text = self._dmp.patch_toText(patch)
         return out[0], bytes(text, 'utf-8').decode('utf-8')
-
-    def _collect(self, root):
-        """
-        @brief      "{ function_description }"
-
-        @param      self  The object
-        @param      root  The root
-
-        @return     { description_of_the_return_va
-        """
-        nodes = []
-        if root is not None:
-            nodes.append(root)
-            for n in root.children:
-                nodes.extend(self._collect(n))
-        return nodes
