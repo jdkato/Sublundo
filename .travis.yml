@@ -2,7 +2,7 @@ language: python
 python:
   - 3.3
 install:
-  - pip install --user pycodestyle
+  - pip install pycodestyle
 before_script:
   - pycodestyle --max-line-length 100 .
 script:
