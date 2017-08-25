@@ -18,10 +18,12 @@ visualization of the underlying UndoTree.
 """
 import os
 
+from urllib.parse import unquote
+
 import sublime
 import sublime_plugin
 
-from .lib import (util, tree)
+from .lib import (util, libundo)
 
 
 class SublundoNextNodeCommand(sublime_plugin.TextCommand):
@@ -165,14 +167,16 @@ class SublundoCommand(sublime_plugin.TextCommand):
         """
         t = util.VIEW_TO_TREE[self.view.id()]['tree']
         if command == 'undo':
-            buf, diff, pos = t.undo()
+            dt = t.undo()
         else:
-            buf, diff, pos = t.redo()
+            dt = t.redo()
 
+        print('HMM', dt)
+        buf = dt['buffer'].decode('utf-8')
         self.view.replace(edit, sublime.Region(0, self.view.size()), buf)
-        if pos:
+        if dt['position']:
             # Draw an outline around the line that's changing.
-            line = self.view.line(pos - 1)
+            line = self.view.line(dt['position'] - 1)
             self.view.add_regions(
                 'sublundo',
                 [line],
@@ -182,8 +186,10 @@ class SublundoCommand(sublime_plugin.TextCommand):
             self.view.show(line)
 
         p = sublime.active_window().find_output_panel('sublundo')
-        if p and diff:
-            p.replace(edit, sublime.Region(0, p.size()), diff)
+        if p and dt['patch']:
+            display = unquote(dt['patch'].decode('utf-8'))
+            print('HEY', display)
+            p.replace(edit, sublime.Region(0, p.size()), display)
 
 
 class UndoEventListener(sublime_plugin.EventListener):
@@ -196,11 +202,11 @@ class UndoEventListener(sublime_plugin.EventListener):
         if name and not util.check_view(view):
             loc = util.make_session(name)
             buf = util.buffer(view)
-            t, loaded = tree.load_session(loc, buf)
-            if loaded:
+            t = libundo.PyUndoTree(loc.encode('utf-8'), buf)
+            if len(t):
                 util.debug('Loaded session for {0}.'.format(name))
             else:
-                t.insert(buf)
+                t.insert(buf, 0)
             util.VIEW_TO_TREE[view.id()] = {'tree': t, 'loc': loc}
             util.CHANGE_INDEX[view.id()] = 0
 
@@ -232,7 +238,7 @@ class UndoEventListener(sublime_plugin.EventListener):
         '''
         loc, found = util.check_view(view)
         if loc and found:
-            tree.save_session(util.VIEW_TO_TREE[loc], loc)
+            tree.save()
         '''
 
     def on_text_command(self, view, command_name, args):

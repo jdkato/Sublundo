@@ -223,19 +223,20 @@ def generate(dag, current):
     seen, state = [], [0, 0]
     buf = Buffer()
     for node, parents in list(dag):
-        if node.parent is not None:
-            tm = datetime.strptime(node.timestamp, '%d-%m-%Y %H-%M-%S')
+        if node.get('parent') is not None:
+            stamp = node.get('timestamp').decode('utf-8')
+            tm = datetime.strptime(stamp, '%d-%m-%Y %H-%M-%S')
             age_label = age(tm)
         else:
             age_label = 'Root'
 
-        if node.idx == current:
+        if node.get('id') == current:
             char = '@'
-            line = '[%s] %s' % (node.idx, age_label)
+            line = '[%s] %s' % (node.get('id'), age_label)
         else:
             char = 'o'
-            line = '%s %s' % (node.idx, age_label)
+            line = '%s %s' % (node.get('id'), age_label)
 
         ascii(buf, state, 'C', char, [line],
-              asciiedges(seen, node.idx, parents))
+              asciiedges(seen, node.get('id'), parents))
     return buf.b

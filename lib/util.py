@@ -122,8 +122,8 @@ def walk_nodes(nodes):
     """Return all (node, parent) combinations in the given list of nodes.
     """
     for node in nodes:
-        if node.parent is not None:
-            yield (node, [node.parent.idx])
+        if node.get('parent') is not None:
+            yield (node, [node.get('parent')])
         else:
             yield (node, [])
 
@@ -131,7 +131,7 @@ def walk_nodes(nodes):
 def render(tree):
     """Show an ASCII-formatted version of the given UndoTree.
     """
-    current = tree.head().idx
+    current = tree.head().get('id')
     nodes = reversed(tree.nodes())
     return graphmod.generate(walk_nodes(nodes), current).rstrip()
 
@@ -139,7 +139,7 @@ def render(tree):
 def buffer(view):
     """Return the given view's entire buffer.
     """
-    return view.substr(sublime.Region(0, view.size()))
+    return view.substr(sublime.Region(0, view.size())).encode('utf-8')
 
 
 def make_session(path):
