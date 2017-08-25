@@ -136,7 +136,7 @@ class UndoTree:
         """
         if direction and self._b_idx + 1 < len(self.head().children):
             self._b_idx = self._b_idx + 1
-        elif not direction and self._b_idx - 1 <= 0:
+        elif not direction and self._b_idx - 1 >= 0:
             self._b_idx = self._b_idx - 1
         else:
             upper = len(self.head().children) - 1
