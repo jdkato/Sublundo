@@ -38,7 +38,7 @@ def load_session(path, buf):
             with open(path, 'rb') as loc:
                 canidate = pickle.load(loc)
                 old = hashlib.md5(canidate.text().encode()).hexdigest()
-            if old == buf:
+            if old == new:
                 return canidate, True
         except EOFError:
             pass

@@ -11,7 +11,7 @@ from lib.tree import (
 def new_tree(name):
     if os.path.exists(name):
         os.remove(name)
-    return UndoTree(name, '')
+    return UndoTree()
 
 
 class UndoTreeTestCase(unittest.TestCase):
