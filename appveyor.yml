@@ -1,0 +1,4 @@
+version: "{build}"
+os: Windows Server 2012 R2
+test_script:
+  - python -m unittest discover
