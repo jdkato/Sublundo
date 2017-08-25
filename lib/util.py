@@ -148,8 +148,7 @@ def make_session(path):
     TODO: What if a file is re-named? Currently, it's history would be lost.
     """
     history = os.path.join(sublime.packages_path(), 'User', 'Sublundo')
-    m = hashlib.md5()
-    m.update(path.encode())
+    m = hashlib.md5(path.encode())
     return os.path.join(history, m.hexdigest() + '.sublundo-session')
 
 

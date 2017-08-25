@@ -224,15 +224,11 @@ class UndoEventListener(sublime_plugin.EventListener):
             v.erase_regions('sublundo')
 
     def on_pre_close(self, view):
-        """Save the current sessions.
-
-        TODO: work on this.
+        """Save the current session.
         """
-        '''
-        loc, found = util.check_view(view)
-        if loc and found:
-            tree.save_session(util.VIEW_TO_TREE[loc], loc)
-        '''
+        if util.check_view(view):
+            info = util.VIEW_TO_TREE[view.id()]
+            tree.save_session(info['tree'], info['loc'])
 
     def on_text_command(self, view, command_name, args):
         """Run `sublundo` instead of the built-in `undo` and `redo` commands.
