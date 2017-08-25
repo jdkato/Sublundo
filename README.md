@@ -1,4 +1,4 @@
-# Sublundo
+# Sublundo [![Build Status](https://travis-ci.org/libundo/Sublundo.svg?branch=master)](https://travis-ci.org/libundo/Sublundo)
 
 <p align="center">
   <img src="https://user-images.githubusercontent.com/8785025/29700228-b4a4ae6e-8917-11e7-9dcb-318680979153.png">
