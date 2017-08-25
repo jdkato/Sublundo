@@ -1,29 +1,44 @@
 """tree.py
+
+This module contains the implementation of a simple N-ary tree, with each node
+containing a patch that takes us from one buffer state to another.
 """
 import pickle
 import os
 import collections
+import hashlib
 
 from datetime import datetime
 from .diff_match_patch import diff_match_patch
 
 
 def save_session(session, path):
-    """
+    """Save the given UndoTree.
     """
     with open(path, 'wb') as loc:
         pickle.dump(session, loc, pickle.HIGHEST_PROTOCOL)
 
 
 def load_session(path, buf):
+    """Try to load the UndoTree stored on `path`.
+
+    If the current buffer (given by `buf`) doesn't match the last state stored
+    on disk, we return a new UndoTree.
+
+    Args:
+        path (str): The path to the *.sublundo-session file.
+        buf (str): The most recent file contents.
+
+    Returns:
+        tree.UndoTree
     """
-    """
+    new = hashlib.md5(buf.encode()).hexdigest()
     if os.path.exists(path):
         try:
             with open(path, 'rb') as loc:
                 canidate = pickle.load(loc)
-                old = canidate.text()
-            if len(old) == len(buf) and old == buf:
+                old = hashlib.md5(canidate.text().encode()).hexdigest()
+            if old == buf:
                 return canidate, True
         except EOFError:
             pass
@@ -31,23 +46,21 @@ def load_session(path, buf):
 
 
 class Node:
-    """
+    """A Node represents a single buffer state.
     """
     def __init__(self, idx, parent, timestamp, pos=None):
-        self.idx = idx
+        self.idx = idx  # The node's unique index.
         self.parent = parent
         self.timestamp = timestamp
         self.children = []
         self.patches = {}
-        self.position = pos
+        self.position = pos # The node's buffer position.
 
 
 class UndoTree:
+    """An N-ary tree representing a text buffer's history.
     """
-    """
-    def __init__(self, path, buf):
-        """
-        """
+    def __init__(self):
         self._root = None
         self._total = 0
         self._n_idx = 0
@@ -61,13 +74,11 @@ class UndoTree:
         return self._total
 
     def insert(self, buf, pos=None):
-        """
-        @brief      "{ function_description }"
+        """Insert the given buffer and (optional) position into the tree.
 
-        @param      self  The object
-        @param      buf   The buffer
-
-        @return     { description_of_the_return_value }
+        Args:
+            buf (str): The contents to be inserted.
+            pos (None|int): An optional integer representing a buffer position.
         """
         self._total = self._total + 1
         tm = datetime.now().strftime('%d-%m-%Y %H-%M-%S')
@@ -89,7 +100,7 @@ class UndoTree:
         self._index[self._total] = to_add
 
     def undo(self):
-        """
+        """Move backward one node, if possible.
         """
         diff = None
         pos = None
@@ -100,7 +111,7 @@ class UndoTree:
         return self._buf, diff, pos
 
     def redo(self):
-        """
+        """Move forward one node, if possible.
         """
         diff = None
         pos = None
@@ -112,27 +123,27 @@ class UndoTree:
         return self._buf, diff, pos
 
     def branch(self):
-        """
+        """Return the active branch index.
         """
         return self._b_idx
 
     def text(self):
-        """
+        """Return the active node's buffer.
         """
         return self._buf
 
     def nodes(self):
-        """
+        """Return all nodes in the tree ordered by inserted time.
         """
         return list(self._index.values())
 
     def head(self):
-        """
+        """Return the current node in the tree.
         """
         return self._search(self._n_idx)
 
     def switch_branch(self, direction):
-        """
+        """Switch to the next branch in `direction`.
         """
         if direction and self._b_idx + 1 < len(self.head().children):
             self._b_idx = self._b_idx + 1
@@ -146,12 +157,12 @@ class UndoTree:
                 self._b_idx = 0
 
     def _search(self, idx):
-        """
+        """Search for the node with an index of `idx`.
         """
         return self._index.get(idx, None)
 
     def _find_parent(self):
-        """
+        """Find the current parent node.
         """
         maybe = self.head()
         if maybe.parent is not None and self._b_idx in maybe.parent.children:
@@ -160,16 +171,12 @@ class UndoTree:
             return maybe
 
     def _patch(self, s1, s2):
-        """
-        @brief      "{ function_description }"
-
-        @param      self  The object
-
-        @return     { description_of_the_return_value }
+        """Create patches for `s1` -> `s2` and `s2` -> `s1`.
         """
         d1 = self._dmp.diff_main(s1, s2)
         p1 = self._dmp.patch_make(s1, d1)
 
+        # Instead of diffing twice, we just flip the first.
         for i in range(len(d1)):
             le = list(d1[i])
             le[0] = le[0] * -1
@@ -179,16 +186,13 @@ class UndoTree:
         return [p1, p2]
 
     def _apply_patch(self, idx):
-        """
-        @brief      "{ function_description }"
+        """Apply the node's patch given by `idx`.
 
-        @param      self  The object
-        @param      idx   The index
-
-        @return     { description_of_the_return_value }
+        Returns:
+            (str, str): The resulting text and the patch itself.
         """
         patch = self.head().patches[idx]
         out = self._dmp.patch_apply(patch, self._buf)
         self._n_idx = idx
         text = self._dmp.patch_toText(patch)
-        return out[0], bytes(text, 'utf-8').decode('utf-8')
+        return out[0], text
