@@ -15,8 +15,6 @@ the plugin follows:
 
 We also implement a `sublundo_visualize` command, which presents a Gundo-like
 visualization of the underlying UndoTree.
-
-
 """
 import os
 
@@ -204,6 +202,7 @@ class UndoEventListener(sublime_plugin.EventListener):
             else:
                 t.insert(buf)
             util.VIEW_TO_TREE[view.id()] = {'tree': t, 'loc': loc}
+            util.CHANGE_INDEX[view.id()] = 0
 
     def on_close(self, view):
         """Clean up the visualization.
@@ -236,23 +235,19 @@ class UndoEventListener(sublime_plugin.EventListener):
             tree.save_session(util.VIEW_TO_TREE[loc], loc)
         '''
 
-    def on_modified(self, view):
-        """Update the view's UndoTree when there has been a buffer change.
-        """
-        cmd = view.command_history(0, True)[0]
-        # We don't include our own changes.
-        if util.check_view(view) and cmd not in ('sublundo'):
-            util.VIEW_TO_TREE[view.id()]['tree'].insert(
-                util.buffer(view),
-                view.sel()[0].begin()
-            )
-
     def on_text_command(self, view, command_name, args):
         """Run `sublundo` instead of the built-in `undo` and `redo` commands.
         """
         triggers = ('undo', 'redo_or_repeat', 'redo')
         if util.check_view(view) and command_name in triggers:
             return ('sublundo', {'command': command_name})
+        elif command_name != 'sublundo' and view.id() in util.CHANGE_INDEX:
+            if util.CHANGE_INDEX[view.id()] != view.change_count():
+                util.VIEW_TO_TREE[view.id()]['tree'].insert(
+                    util.buffer(view),
+                    view.sel()[0].begin()
+                )
+                util.CHANGE_INDEX[view.id()] = view.change_count()
         return None
 
 

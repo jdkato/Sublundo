@@ -1,22 +1,32 @@
+"""util.py
+
+This module contains our utility functions and global variable definitions.
+
+NOTE: `calc_width`, `get_group` and `set_active_group` were borrowed from
+https://github.com/aziz/SublimeFileBrowser.
+"""
 import hashlib
 import os
 
 import sublime
-
 from . import graphmod
 
 SETTING_FILE = 'Sublundo.sublime-settings'
-CHANGE_INDEX = 0
+
+# `CHANGE_INDEX` maps view IDs to their `change_count()`s. We use this to
+# determine when to insert into the view's UndoTree.
+CHANGE_INDEX = {}
+
+# `VIEW_TO_TREE` maps view IDs to their UndoTrees.
 VIEW_TO_TREE = {}
+
+# `VIS_TO_VIEW` maps visualization view IDs to their actual views.
 VIS_TO_VIEW = {}
 
 
 def calc_width(view):
-    '''
-    return float width, which must be
-        0.0 < width < 1.0 (other values acceptable, but cause unfriendly layout)
-    used in show.show() and "dired_select" command with other_group=True
-    '''
+    """Calculate the width for a visualization based on the view port size.
+    """
     width = view.settings().get('tree_width', 0.3)
     if isinstance(width, float):
         width -= width // 1  # must be less than 1
@@ -26,29 +36,32 @@ def calc_width(view):
         if width >= 1:
             width = 0.9
     else:
-        sublime.error_message(u'FileBrowser:\n\ndired_width set to '
-                              u'unacceptable type "%s", please change it.\n\n'
-                              u'Fallback to default 0.3 for now.' % type(width))
+        show_error('Bad `tree_width`; falling back to 0.3.')
         width = 0.3
     return width or 0.1  # avoid 0.0
 
 
-def get_group(groups, nag):
-    '''
-    groups  amount of groups in window
-    nag     number of active group
-    return number of neighbour group
-    '''
-    if groups <= 4 and nag < 2:
-        group = 1 if nag == 0 else 0
-    elif groups == 4 and nag >= 2:
-        group = 3 if nag == 2 else 2
+def show_error(msg):
+    """Show an error dialog to the user.
+    """
+    sublime.error_message('Sublundo [ERROR]: {0}'.format(msg))
+
+
+def get_group(groups, active_groups):
+    """Return number of neighbours based on the number of (active) groups.
+    """
+    if groups <= 4 and active_groups < 2:
+        group = 1 if active_groups == 0 else 0
+    elif groups == 4 and active_groups >= 2:
+        group = 3 if active_groups == 2 else 2
     else:
-        group = nag - 1
+        group = active_groups - 1
     return group
 
 
 def set_active_group(window, view, other_group):
+    """Determine the window layout.
+    """
     nag = window.active_group()
     if other_group:
         group = 0 if other_group == 'left' else 1
@@ -106,6 +119,8 @@ def debug(message, prefix='Sublundo', level='debug'):
 
 
 def walk_nodes(nodes):
+    """Return all (node, parent) combinations in the given list of nodes.
+    """
     for node in nodes:
         if node.parent is not None:
             yield (node, [node.parent.idx])
@@ -114,17 +129,24 @@ def walk_nodes(nodes):
 
 
 def render(tree):
-    nodes = tree.nodes()
-    dag = sorted(nodes, key=lambda n: n.idx, reverse=True)
+    """Show an ASCII-formatted version of the given UndoTree.
+    """
     current = tree.head().idx
-    return graphmod.generate(walk_nodes(dag), current).rstrip()
+    nodes = reversed(tree.nodes())
+    return graphmod.generate(walk_nodes(nodes), current).rstrip()
 
 
 def buffer(view):
+    """Return the given view's entire buffer.
+    """
     return view.substr(sublime.Region(0, view.size()))
 
 
 def make_session(path):
+    """Make a session file from the given file path.
+
+    TODO: What if a file is re-named? Currently, it's history would be lost.
+    """
     history = os.path.join(sublime.packages_path(), 'User', 'Sublundo')
     m = hashlib.md5()
     m.update(path.encode())
@@ -132,11 +154,6 @@ def make_session(path):
 
 
 def check_view(view):
-    """
-    @brief      { function_description }
-
-    @param      view  The view
-
-    @return     { description_of_the_return_value }
+    """Determine if we've seen the given view yet.
     """
     return view.id() in VIEW_TO_TREE

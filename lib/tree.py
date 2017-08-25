@@ -1,5 +1,8 @@
+"""tree.py
+"""
 import pickle
 import os
+import collections
 
 from datetime import datetime
 from .diff_match_patch import diff_match_patch
@@ -7,7 +10,6 @@ from .diff_match_patch import diff_match_patch
 
 def save_session(session, path):
     """
-    ddddd
     """
     with open(path, 'wb') as loc:
         pickle.dump(session, loc, pickle.HIGHEST_PROTOCOL)
@@ -53,7 +55,7 @@ class UndoTree:
         self._buf = None
         self._undo_file = None
         self._dmp = diff_match_patch()
-        self._index = {}
+        self._index = collections.OrderedDict()
 
     def __len__(self):
         return self._total
@@ -150,11 +152,6 @@ class UndoTree:
 
     def _find_parent(self):
         """
-        @brief      "{ function_description }""
-
-        @param      self  The object
-
-        @return     { description_of_the_return_value }
         """
         maybe = self.head()
         if maybe.parent is not None and self._b_idx in maybe.parent.children:
