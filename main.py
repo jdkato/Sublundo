@@ -6,8 +6,8 @@ the plugin follows:
     * Watch for view `on_activated` events, assigning each view its own
       UndoTree, which we store in `util.VIEW_TO_TREE` for easy access.
 
-    * Watch for an insertion trigger (`on_modified`, by default) to insert the
-      current view's contents into the associated UndoTree.
+    * Watch for changes to every view's `change_count`, inserting into the
+      associated UndoTree on increments.
 
     * Watch for the 'undo', 'redo_or_repeat', or 'redo' commands and overwrite
       them with `sublundo`, which calls either `tree.undo()` or `tree.redo()`

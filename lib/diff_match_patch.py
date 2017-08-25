@@ -1903,5 +1903,6 @@ class patch_obj:
         text.append(" ")
       # High ascii will raise UnicodeDecodeError.  Use Unicode instead.
       # data = data.encode("utf-8")
-      text.append(urllib.parse.quote(data, "!~*'();/?:@&=+$,# ") + "\n")
+      # text.append(urllib.parse.quote(data, "!~*'();/?:@&=+$,# ") + "\n")
+      text.append(data + "\n")
     return "".join(text)
