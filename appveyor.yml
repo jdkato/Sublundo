@@ -9,4 +9,4 @@ environment:
       PYTHON_VERSION: "3.3.5"
       PYTHON_ARCH: "64"
 test_script:
-  - python -m unittest discover
+  - "%PYTHON%/python -m unittest discover"
