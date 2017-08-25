@@ -2,8 +2,8 @@ language: python
 python:
   - 3.3
 install:
-  pip install --user pycodestyle
+  - pip install --user pycodestyle
 before_script:
   - pycodestyle --max-line-length 100 .
 script:
- - python -m unittest discover
+  - python -m unittest discover
