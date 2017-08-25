@@ -81,6 +81,38 @@
     },
     {
         "keys": [
+            "h"
+        ],
+        "command": "sublundo_switch_branch",
+        "args": {
+            "forward": 0
+        },
+        "context": [
+            {
+                "key": "selector",
+                "operator": "equal",
+                "operand": "text.sublundo.tree"
+            }
+        ]
+    },
+    {
+        "keys": [
+            "l"
+        ],
+        "command": "sublundo_switch_branch",
+        "args": {
+            "forward": 1
+        },
+        "context": [
+            {
+                "key": "selector",
+                "operator": "equal",
+                "operand": "text.sublundo.tree"
+            }
+        ]
+    },
+    {
+        "keys": [
             "right"
         ],
         "command": "sublundo_switch_branch",
