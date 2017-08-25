@@ -54,7 +54,7 @@ class Node:
         self.timestamp = timestamp
         self.children = []
         self.patches = {}
-        self.position = pos # The node's buffer position.
+        self.position = pos  # The node's buffer position.
 
 
 class UndoTree:

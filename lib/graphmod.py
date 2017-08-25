@@ -169,9 +169,8 @@ def ascii(buf, state, type, char, text, coldata):
     nodeline = ["|", " "] * idx
     nodeline.extend([char, " "])
 
-    nodeline.extend(
-        get_nodeline_edges_tail(idx, state[1], ncols, coldiff, state[0],
-                                fix_nodeline_tail))
+    nodeline.extend(get_nodeline_edges_tail(idx, state[1], ncols, coldiff,
+                                            state[0], fix_nodeline_tail))
 
     # shift_interline is the line containing the non-vertical
     # edges between this entry and the next
