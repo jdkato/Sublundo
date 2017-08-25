@@ -172,11 +172,11 @@ class SublundoCommand(sublime_plugin.TextCommand):
         self.view.replace(edit, sublime.Region(0, self.view.size()), buf)
         if pos:
             # Draw an outline around the line that's changing.
-            line = self.view.line(pos - 1)
+            line = self.view.full_line(pos)
             self.view.add_regions(
                 'sublundo',
                 [line],
-                'comment',
+                'invalid',
                 '',
                 sublime.DRAW_NO_FILL)
             self.view.show(line)
