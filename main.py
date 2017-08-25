@@ -219,7 +219,7 @@ class UndoEventListener(sublime_plugin.EventListener):
                     "cells": [[0, 0, 1, 1]]
                 }
             ), 300)
-        w.run_command('hide_panel', {'panel': 'output.sublundo'})
+        w.destroy_output_panel('output.sublundo')
         for v in w.views():
             v.erase_regions('sublundo')
 

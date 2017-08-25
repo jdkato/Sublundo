@@ -42,7 +42,7 @@ def load_session(path, buf):
                 return canidate, True
         except EOFError:
             pass
-    return UndoTree(path, buf), False
+    return UndoTree(), False
 
 
 class Node:
