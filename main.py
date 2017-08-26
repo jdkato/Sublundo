@@ -99,35 +99,35 @@ class SublundoVisualizeCommand(sublime_plugin.TextCommand):
         Args:
             output (bool): Indicates if we're re-drawing the tree.
         """
+        vis = None
         if util.check_view(self.view):
             # Find our visualization view:
             if not output:
                 # We don't have an output view, so it's an initial draw.
                 window = sublime.active_window()
                 old = window.active_view()
-                view = window.new_file()
+                vis = window.new_file()
 
                 # Set the layout.
                 # TODO: make this a settings.
-                nag, group = util.set_active_group(window, view, 'left')
+                nag, group = util.set_active_group(window, vis, 'left')
 
-                util.VIS_TO_VIEW[view.id()] = self.view
-                view.set_name('Sublundo: History View')
-                view.settings().set('gutter', False)
-                view.settings().set('word_wrap', False)
+                util.VIS_TO_VIEW[vis.id()] = self.view
+                vis.set_name('Sublundo: History View')
+                vis.settings().set('gutter', False)
+                vis.settings().set('word_wrap', False)
 
                 buf = util.render(util.VIEW_TO_TREE[self.view.id()]['tree'])
-                view.replace(edit, sublime.Region(0, view.size()), buf)
+                vis.replace(edit, sublime.Region(0, vis.size()), buf)
 
-                view.set_syntax_file(
+                vis.set_syntax_file(
                     'Packages/Sublundo/Sublundo.sublime-syntax')
-                view.set_read_only(True)
-                view.set_scratch(True)
-                view.sel().clear()
+                vis.set_read_only(True)
+                vis.set_scratch(True)
+                vis.sel().clear()
 
                 window.run_command('hide_overlay')
                 window.focus_view(old)
-                window.focus_view(view)
 
                 if not window.find_output_panel('sublundo'):
                     p = window.create_output_panel('sublundo', False)
@@ -136,19 +136,18 @@ class SublundoVisualizeCommand(sublime_plugin.TextCommand):
                 window.run_command('show_panel', {'panel': 'output.sublundo'})
             else:
                 # We were given an output view, so it's a re-draw.
-                view = sublime.View(output)
+                vis = sublime.View(output)
                 buf = util.render(util.VIEW_TO_TREE[self.view.id()]['tree'])
 
-                view.set_read_only(False)
-                view.replace(edit, sublime.Region(0, view.size()), buf)
-                view.set_read_only(True)
-
-                sublime.active_window().focus_view(view)
+                vis.set_read_only(False)
+                vis.replace(edit, sublime.Region(0, vis.size()), buf)
+                vis.set_read_only(True)
 
             # Move to the active node.
-            pos = view.find_by_selector('keyword.other.sublundo.tree.position')
+            sublime.active_window().focus_view(vis)
+            pos = vis.find_by_selector('keyword.other.sublundo.tree.position')
             if pos:
-                view.show(pos[0], True)
+                vis.show(pos[0], True)
             else:
                 t = util.VIEW_TO_TREE[self.view.id()]['tree']
                 util.debug('No active node? Total size = {0}.'.format(len(t)))
@@ -161,7 +160,7 @@ class SublundoCommand(sublime_plugin.TextCommand):
         """Update the current view with the result of calling `undo` or `redo`.
 
         Args:
-            command (str): 'undo', 'redo', or 'redo_or_repeat'.
+            command (str): 'undo', 'redo', or 'redo_or_repeat'
         """
         t = util.VIEW_TO_TREE[self.view.id()]['tree']
         if command == 'undo':
@@ -173,9 +172,9 @@ class SublundoCommand(sublime_plugin.TextCommand):
         p = sublime.active_window().find_output_panel('sublundo')
         if p and diff:
             p.replace(edit, sublime.Region(0, p.size()), diff)
-            if pos:
+            if pos != 0:
                 # Draw an outline around the line that's changing.
-                line = self.view.full_line(pos)
+                line = self.view.line(pos)
                 self.view.add_regions(
                     'sublundo',
                     [line],
@@ -199,7 +198,7 @@ class UndoEventListener(sublime_plugin.EventListener):
             if loaded:
                 util.debug('Loaded session for {0}.'.format(name))
             else:
-                t.insert(buf)
+                t.insert(buf, 0)
             util.VIEW_TO_TREE[view.id()] = {'tree': t, 'loc': loc}
             util.CHANGE_INDEX[view.id()] = 0
 
@@ -227,9 +226,11 @@ class UndoEventListener(sublime_plugin.EventListener):
     def on_pre_close(self, view):
         """Save the current session.
         """
+        '''
         if util.check_view(view):
             info = util.VIEW_TO_TREE[view.id()]
             tree.save_session(info['tree'], info['loc'])
+        '''
 
     def on_text_command(self, view, command_name, args):
         """Run `sublundo` instead of the built-in `undo` and `redo` commands.
