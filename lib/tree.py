@@ -115,6 +115,7 @@ class UndoTree:
         if parent is not None:
             self._buf, diff = self._apply_patch(parent.idx)
             pos = parent.position
+        self.b_idx = 0
         return self._buf, diff, pos
 
     def redo(self):
@@ -127,6 +128,7 @@ class UndoTree:
             target = n.children[self._b_idx]
             self._buf, diff = self._apply_patch(target.idx)
             pos = target.position
+        self.b_idx = 0
         return self._buf, diff, pos
 
     def branch(self):
