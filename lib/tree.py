@@ -125,7 +125,6 @@ class UndoTree:
         n = self.head()
         size = len(n.children)
 
-        print(n.idx, size, self._b_idx, "HMM")
         if size == 1 and size <= self._b_idx:
             target = n.children[0]
         elif size > self._b_idx:

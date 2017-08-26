@@ -170,7 +170,7 @@ class SublundoCommand(sublime_plugin.TextCommand):
             buf, diff, pos = t.redo()
 
         self.view.replace(edit, sublime.Region(0, self.view.size()), buf)
-        if pos != 0 and in_vis:
+        if pos and in_vis:
             # Draw an outline around the line that's changing.
             line = self.view.full_line(pos)
             self.view.add_regions(
