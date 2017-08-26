@@ -155,7 +155,6 @@ class UndoTreeTestCase(unittest.TestCase):
         t.switch_branch(0)
         self.assertEqual(t.branch(), 1)  # Wrap around.
 
-
         #            @
         #      (x)  / \
         #          2   3
@@ -205,7 +204,6 @@ class UndoTreeTestCase(unittest.TestCase):
 
         t.redo()
         self.assertEqual(t.head().idx, 5)
-
 
 
 if __name__ == '__main__':
