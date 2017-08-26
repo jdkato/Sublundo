@@ -3,6 +3,7 @@
 This module contains the implementation of a simple N-ary tree, with each node
 containing a patch that takes us from one buffer state to another.
 """
+import hashlib
 import pickle
 import os
 import collections
@@ -80,6 +81,11 @@ class UndoTree:
             buf (str): The contents to be inserted.
             pos (None|int): An optional integer representing a buffer position.
         """
+        new = hashlib.md5(buf.encode()).digest()
+        if self._buf and new == hashlib.md5(self._buf.encode()).digest():
+            # TODO: should we keep this check?
+            return
+
         self._total = self._total + 1
         tm = datetime.now().strftime('%d-%m-%Y %H-%M-%S')
         to_add = Node(self._total, None, tm, pos)
@@ -97,6 +103,7 @@ class UndoTree:
 
         self._n_idx = to_add.idx
         self._buf = buf
+        self.b_idx = 0
         self._index[self._total] = to_add
 
     def undo(self):
