@@ -159,11 +159,5 @@ class UndoTreeTestCase(unittest.TestCase):
         self.assertEqual(t.branch(), 0)  # Wrap around again.
 
 
-
-
-
-
-
-
 if __name__ == '__main__':
     unittest.main()
