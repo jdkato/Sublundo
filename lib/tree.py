@@ -7,7 +7,6 @@ import hashlib
 import pickle
 import os
 import collections
-import hashlib
 
 from datetime import datetime
 from .diff_match_patch import diff_match_patch
@@ -115,7 +114,6 @@ class UndoTree:
         if parent is not None:
             self._buf, diff = self._apply_patch(parent.idx)
             pos = parent.position
-        self.b_idx = 0
         return self._buf, diff, pos
 
     def redo(self):
@@ -123,12 +121,21 @@ class UndoTree:
         """
         diff = None
         pos = None
+
         n = self.head()
-        if len(n.children) > 0:
+        size = len(n.children)
+
+        print(n.idx, size, self._b_idx, "HMM")
+        if size == 1 and size <= self._b_idx:
+            target = n.children[0]
+        elif size > self._b_idx:
             target = n.children[self._b_idx]
-            self._buf, diff = self._apply_patch(target.idx)
-            pos = target.position
-        self.b_idx = 0
+        else:
+            return self._buf, diff, pos
+
+        self._buf, diff = self._apply_patch(target.idx)
+        pos = target.position
+
         return self._buf, diff, pos
 
     def branch(self):
