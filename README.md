@@ -7,4 +7,6 @@
 
 > NOTE: This package is in early development. Use with caution.
 
-Sublundo brings Vim-like persistent, branching undo/redo to Sublime Text 3.
+Sublundo brings Vim-like persistent, branching undo/redo to Sublime Text 3. It was inspired by [Gundo.vim](https://sjl.bitbucket.io/gundo.vim/) (and its successor, [Mundo](http://simnalamburt.github.io/vim-mundo/dist/)).
+
+
