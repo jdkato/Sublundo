@@ -155,7 +155,7 @@ class UndoTree:
         n = len(self.head().children)
         if n <= 1:
             # We have no where to move - e.g., [b_idx].
-            return
+            self._b_idx = 0
         elif direction and self._b_idx + 1 < n:
             # We're moving to the right - e.g., [b_idx, b, c] => [a, b_idx, c].
             # This can only happen if we're not to the end of the list yet.

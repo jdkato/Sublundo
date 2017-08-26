@@ -155,8 +155,57 @@ class UndoTreeTestCase(unittest.TestCase):
         t.switch_branch(0)
         self.assertEqual(t.branch(), 1)  # Wrap around.
 
+
+        #            @
+        #      (x)  / \
+        #          2   3
+
         t.switch_branch(1)
         self.assertEqual(t.branch(), 0)  # Wrap around again.
+
+        t.redo()
+        self.assertEqual(t.head().idx, 2)
+
+        #            1
+        #      (x)  / \
+        #          2   3
+        #         /
+        #        4
+        #       /
+        #      @
+
+        t.insert('Four')
+        t.insert('Five')
+
+        self.assertEqual(t.head().idx, 5)
+
+        t.undo()
+        self.assertEqual(t.head().idx, 4)
+
+        t.undo()
+        self.assertEqual(t.head().idx, 2)
+
+        t.undo()
+        self.assertEqual(t.head().idx, 1)
+
+        t.switch_branch(1)
+        t.redo()
+        self.assertEqual(t.head().idx, 3)
+
+        t.undo()
+        self.assertEqual(t.head().idx, 1)
+
+        t.switch_branch(1)
+
+        t.redo()
+        self.assertEqual(t.head().idx, 2)
+
+        t.redo()
+        self.assertEqual(t.head().idx, 4)
+
+        t.redo()
+        self.assertEqual(t.head().idx, 5)
+
 
 
 if __name__ == '__main__':
