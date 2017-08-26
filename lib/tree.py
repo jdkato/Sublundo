@@ -145,16 +145,22 @@ class UndoTree:
     def switch_branch(self, direction):
         """Switch to the next branch in `direction`.
         """
-        if direction and self._b_idx + 1 < len(self.head().children):
+        n = len(self.head().children)
+        if n <= 1:
+            # We have no where to move - e.g., [b_idx].
+            return
+        elif direction and self._b_idx + 1 < n:
+            # We're moving to the right - e.g., [b_idx, b, c] => [a, b_idx, c].
+            # This can only happen if we're not to the end of the list yet.
             self._b_idx = self._b_idx + 1
         elif not direction and self._b_idx - 1 >= 0:
+            # We're moving to the left - e.g., [a, b_idx, c] => [b_idx, a, c].
+            # This can only happen if we're not at the start of the list.
             self._b_idx = self._b_idx - 1
         else:
-            upper = len(self.head().children) - 1
-            if not direction and upper > 0:
-                self._b_idx = upper
-            else:
-                self._b_idx = 0
+            # We're at the end of head's children (either extreme); wrap around
+            # to the other end.
+            self._b_idx = 0 if self._b_idx == n - 1 else n - 1
 
     def _search(self, idx):
         """Search for the node with an index of `idx`.

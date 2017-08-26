@@ -120,6 +120,50 @@ class UndoTreeTestCase(unittest.TestCase):
         self.assertEqual(len(t2[0]), 0)
         self.assertEqual(t2[1], False)
 
+    def test_switch_branch(self):
+        t = new_tree('test.libundo-session')
+        self.assertEqual(t.branch(), 0)
+
+        #            1
+        #            |
+        #            @
+
+        t.insert('One')
+        t.insert('Two')
+
+        t.switch_branch(1)
+        self.assertEqual(t.branch(), 0)  # No where to move.
+
+        t.undo()
+        t.insert('Three')
+
+        self.assertEqual(t.branch(), 0)
+
+        #            1
+        #      (x)  / \
+        #          2   @
+
+        t.switch_branch(1)
+        self.assertEqual(t.branch(), 0)  # head has no children.
+
+        t.undo()
+
+        #            @
+        #           / \  (x)
+        #          2   3
+
+        t.switch_branch(0)
+        self.assertEqual(t.branch(), 1)  # Wrap around.
+
+        t.switch_branch(1)
+        self.assertEqual(t.branch(), 0)  # Wrap around again.
+
+
+
+
+
+
+
 
 if __name__ == '__main__':
     unittest.main()
