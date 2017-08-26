@@ -55,9 +55,9 @@ class SublundoNextNodeCommand(sublime_plugin.TextCommand):
         # changing.
         b_view = util.VIS_TO_VIEW[output]
         if forward:
-            b_view.run_command('sublundo', {'command': 'redo'})
+            b_view.run_command('sublundo', {'command': 'redo', 'in_vis': True})
         else:
-            b_view.run_command('sublundo', {'command': 'undo'})
+            b_view.run_command('sublundo', {'command': 'undo', 'in_vis': True})
 
         b_view.run_command('sublundo_visualize', {'output': output})
 
@@ -156,32 +156,34 @@ class SublundoVisualizeCommand(sublime_plugin.TextCommand):
 class SublundoCommand(sublime_plugin.TextCommand):
     """Sublundo calls a given UndoTree's `undo` or `redo` method.
     """
-    def run(self, edit, command):
+    def run(self, edit, command, in_vis=False):
         """Update the current view with the result of calling `undo` or `redo`.
 
         Args:
-            command (str): 'undo', 'redo', or 'redo_or_repeat'
+            command (str): 'undo', 'redo', or 'redo_or_repeat'.
         """
         t = util.VIEW_TO_TREE[self.view.id()]['tree']
+        pos = 0
         if command == 'undo':
             buf, diff, pos = t.undo()
         else:
             buf, diff, pos = t.redo()
 
         self.view.replace(edit, sublime.Region(0, self.view.size()), buf)
+        if pos != 0 and in_vis:
+            # Draw an outline around the line that's changing.
+            line = self.view.full_line(pos)
+            self.view.add_regions(
+                'sublundo',
+                [line],
+                'invalid',
+                '',
+                sublime.DRAW_NO_FILL)
+            self.view.show(line)
+
         p = sublime.active_window().find_output_panel('sublundo')
         if p and diff:
             p.replace(edit, sublime.Region(0, p.size()), diff)
-            if pos != 0:
-                # Draw an outline around the line that's changing.
-                line = self.view.line(pos)
-                self.view.add_regions(
-                    'sublundo',
-                    [line],
-                    'invalid',
-                    '',
-                    sublime.DRAW_NO_FILL)
-                self.view.show(line)
 
 
 class UndoEventListener(sublime_plugin.EventListener):
@@ -238,14 +240,18 @@ class UndoEventListener(sublime_plugin.EventListener):
         triggers = ('undo', 'redo_or_repeat', 'redo')
         if util.check_view(view) and command_name in triggers:
             return ('sublundo', {'command': command_name})
-        elif command_name != 'sublundo' and view.id() in util.CHANGE_INDEX:
+        return None
+
+    def on_post_text_command(self, view, command_name, args):
+        """Update the tree.
+        """
+        if command_name != 'sublundo' and view.id() in util.CHANGE_INDEX:
             if util.CHANGE_INDEX[view.id()] != view.change_count():
                 util.VIEW_TO_TREE[view.id()]['tree'].insert(
                     util.buffer(view),
                     view.sel()[0].begin()
                 )
                 util.CHANGE_INDEX[view.id()] = view.change_count()
-        return None
 
 
 def plugin_loaded():
