@@ -5,7 +5,6 @@ containing a patch that takes us from one buffer state to another.
 """
 import collections
 import datetime
-import hashlib
 import os
 
 from .diff_match_patch import diff_match_patch
@@ -46,8 +45,7 @@ class UndoTree:
             buf (str): The contents to be inserted.
             pos (None|int): An optional integer representing a buffer position.
         """
-        new = hashlib.md5(buf.encode()).digest()
-        if self._buf and new == hashlib.md5(self._buf.encode()).digest():
+        if self._buf and hash(buf) == hash(self._buf):
             # TODO: should we keep this check?
             return
 
