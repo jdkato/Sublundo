@@ -1,3 +1,19 @@
 {
+    // Maximum number of changes that can be undone.
+    "undolevels": 100,
+
+    // "live" or "backup".
+    "mode": "live",
+
+    // Only applies when mode is "backup".
+    "trigger": "change_count",
+
+    // Determines if the visualization is shown on the "left" or "right".
+    "layout": "left",
+
+    // Show a diff panel at the bottom of a isualization.
+    "diff": true,
+
+    // Print debug messages to the console.
     "debug": true,
 }
