@@ -21,7 +21,7 @@ import os
 import sublime
 import sublime_plugin
 
-from .lib import (util, tree)
+from .lib import util
 
 
 class SublundoNextNodeCommand(sublime_plugin.TextCommand):
@@ -196,7 +196,7 @@ class UndoEventListener(sublime_plugin.EventListener):
         if name and not util.check_view(view):
             loc = util.make_session(name)
             buf = util.buffer(view)
-            t, loaded = tree.load_session(loc, buf)
+            t, loaded = util.load_session(loc, buf)
             if loaded:
                 util.debug('Loaded session for {0}.'.format(name))
             else:

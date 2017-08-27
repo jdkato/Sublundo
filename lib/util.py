@@ -9,7 +9,9 @@ import hashlib
 import os
 
 import sublime
+
 from . import graphmod
+from . import tree
 
 SETTING_FILE = 'Sublundo.sublime-settings'
 
@@ -22,6 +24,39 @@ VIEW_TO_TREE = {}
 
 # `VIS_TO_VIEW` maps visualization view IDs to their actual views.
 VIS_TO_VIEW = {}
+
+
+def save_session(session, path):
+    """Save the given UndoTree.
+    """
+    with open(path, 'wb') as loc:
+        pickle.dump(session, loc, pickle.HIGHEST_PROTOCOL)
+
+
+def load_session(path, buf):
+    """Try to load the UndoTree stored on `path`.
+
+    If the current buffer (given by `buf`) doesn't match the last state stored
+    on disk, we return a new UndoTree.
+
+    Args:
+        path (str): The path to the *.sublundo-session file.
+        buf (str): The most recent file contents.
+
+    Returns:
+        tree.UndoTree
+    """
+    new = hashlib.md5(buf.encode()).hexdigest()
+    if os.path.exists(path):
+        try:
+            with open(path, 'rb') as loc:
+                canidate = pickle.load(loc)
+                old = hashlib.md5(canidate.text().encode()).hexdigest()
+            if old == new:
+                return canidate, True
+        except EOFError:
+            pass
+    return tree.UndoTree(), False
 
 
 def calc_width(view):

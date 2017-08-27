@@ -1,11 +1,7 @@
 import os
 import unittest
 
-from lib.tree import (
-    UndoTree,
-    load_session,
-    save_session
-)
+from lib.tree import UndoTree
 
 
 def new_tree(name):
@@ -97,28 +93,6 @@ class UndoTreeTestCase(unittest.TestCase):
         t.switch_branch(1)
 
         self.assertEqual(t.redo()[0], 'My name is Bob.')
-
-    def test_serialize_valid(self):
-        t = new_tree('test.sublundo-session')
-
-        t.insert('Hello from libundo (C++)!')
-        self.assertEqual(len(t), 1)
-        save_session(t, 'test.sublundo-session')
-
-        t2 = load_session('test.sublundo-session', 'Hello from libundo (C++)!')
-        self.assertEqual(len(t2[0]), 1)
-        self.assertEqual(t2[1], True)
-
-    def test_serialize_invalid(self):
-        t = new_tree('test.sublundo-session')
-
-        t.insert('Hello from libundo (C++)!')
-        self.assertEqual(len(t), 1)
-        save_session(t, 'test.sublundo-session')
-
-        t2 = load_session('test.sublundo-session', 'Hello from libundo!')
-        self.assertEqual(len(t2[0]), 0)
-        self.assertEqual(t2[1], False)
 
     def test_switch_branch(self):
         t = new_tree('test.libundo-session')

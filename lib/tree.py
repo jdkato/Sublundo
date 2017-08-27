@@ -3,46 +3,12 @@
 This module contains the implementation of a simple N-ary tree, with each node
 containing a patch that takes us from one buffer state to another.
 """
-import hashlib
-import pickle
-import os
 import collections
+import datetime
+import hashlib
+import os
 
-from datetime import datetime
 from .diff_match_patch import diff_match_patch
-
-
-def save_session(session, path):
-    """Save the given UndoTree.
-    """
-    with open(path, 'wb') as loc:
-        pickle.dump(session, loc, pickle.HIGHEST_PROTOCOL)
-
-
-def load_session(path, buf):
-    """Try to load the UndoTree stored on `path`.
-
-    If the current buffer (given by `buf`) doesn't match the last state stored
-    on disk, we return a new UndoTree.
-
-    Args:
-        path (str): The path to the *.sublundo-session file.
-        buf (str): The most recent file contents.
-
-    Returns:
-        tree.UndoTree
-    """
-    new = hashlib.md5(buf.encode()).hexdigest()
-    if os.path.exists(path):
-        try:
-            with open(path, 'rb') as loc:
-                canidate = pickle.load(loc)
-                old = hashlib.md5(canidate.text().encode()).hexdigest()
-            if old == new:
-                return canidate, True
-        except EOFError:
-            pass
-    return UndoTree(), False
 
 
 class Node:
@@ -86,7 +52,7 @@ class UndoTree:
             return
 
         self._total = self._total + 1
-        tm = datetime.now().strftime('%d-%m-%Y %H-%M-%S')
+        tm = datetime.datetime.now().strftime('%d-%m-%Y %H-%M-%S')
         to_add = Node(self._total, None, tm, pos)
         if self._root is None:
             self._root = to_add
