@@ -1,0 +1,11 @@
+engines:
+ pylint:
+   enabled: true
+   python_version: 3
+ metrics:
+   enabled: true
+ coverage:
+   enabled: true
+exclude_paths:
+  - lib/diff_match_patch.py
+  - lib/graphmod.py
