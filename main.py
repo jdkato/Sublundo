@@ -200,6 +200,7 @@ class UndoEventListener(sublime_plugin.EventListener):
             if loaded:
                 util.debug('Loaded session for {0}.'.format(name))
             else:
+                util.debug('Failed to load session for {0}.'.format(name))
                 t.insert(buf, 0)
             util.VIEW_TO_TREE[view.id()] = {'tree': t, 'loc': loc}
             util.CHANGE_INDEX[view.id()] = 0
@@ -228,11 +229,9 @@ class UndoEventListener(sublime_plugin.EventListener):
     def on_pre_close(self, view):
         """Save the current session.
         """
-        '''
         if util.check_view(view):
             info = util.VIEW_TO_TREE[view.id()]
-            tree.save_session(info['tree'], info['loc'])
-        '''
+            util.save_session(info['tree'], info['loc'])
 
     def on_text_command(self, view, command_name, args):
         """Run `sublundo` instead of the built-in `undo` and `redo` commands.

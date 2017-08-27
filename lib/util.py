@@ -6,6 +6,7 @@ NOTE: `calc_width`, `get_group` and `set_active_group` were borrowed from
 https://github.com/aziz/SublimeFileBrowser.
 """
 import hashlib
+import pickle
 import os
 
 import sublime
@@ -46,13 +47,11 @@ def load_session(path, buf):
     Returns:
         tree.UndoTree
     """
-    new = hashlib.md5(buf.encode()).hexdigest()
     if os.path.exists(path):
         try:
             with open(path, 'rb') as loc:
                 canidate = pickle.load(loc)
-                old = hashlib.md5(canidate.text().encode()).hexdigest()
-            if old == new:
+            if hash(canidate.text()) == hash(buf):
                 return canidate, True
         except EOFError:
             pass
