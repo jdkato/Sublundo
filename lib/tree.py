@@ -3,7 +3,6 @@
 This module contains the implementation of a simple N-ary tree, with each node
 containing a patch that takes us from one buffer state to another.
 """
-import collections
 import datetime
 
 from .diff_match_patch import diff_match_patch
@@ -19,12 +18,12 @@ class Node:
         pos (int): The cursor position at the time of creation.
     """
     def __init__(self, idx, parent, timestamp, pos=None):
-        self.idx = idx  # The node's unique index.
+        self.idx = idx
         self.parent = parent
         self.timestamp = timestamp
         self.children = []
         self.patches = {}
-        self.position = pos  # The node's buffer position.
+        self.position = pos
 
     def __cmp__(self, other):
         if self.idx < other.idx:
@@ -33,6 +32,9 @@ class Node:
             return 1
         else:
             return 0
+
+    def __len__(self):
+        return len(self.children)
 
 
 class UndoTree:
@@ -45,7 +47,7 @@ class UndoTree:
         self._b_idx = 0
         self._buf = None
         self._dmp = diff_match_patch()
-        self._index = collections.OrderedDict()
+        self._index = []
 
     def __len__(self):
         return self._total
@@ -78,7 +80,7 @@ class UndoTree:
         self._n_idx = to_add.idx
         self._buf = buf
         self.b_idx = 0
-        self._index[self._total] = to_add
+        self._index.append(to_add)
 
     def undo(self):
         """Move backward one node, if possible.
@@ -125,7 +127,7 @@ class UndoTree:
     def nodes(self):
         """Return all nodes in the tree ordered by inserted time.
         """
-        return list(self._index.values())
+        return self._index
 
     def head(self):
         """Return the current node in the tree.
@@ -155,7 +157,8 @@ class UndoTree:
     def _search(self, idx):
         """Search for the node with an index of `idx`.
         """
-        return self._index.get(idx, None)
+        j = idx - 1
+        return self._index[j] if j < len(self._index) else None
 
     def _find_parent(self):
         """Find the current parent node.
