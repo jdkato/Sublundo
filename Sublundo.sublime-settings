@@ -5,6 +5,15 @@
     // Show a diff panel at the bottom of the visualization.
     "diff": true,
 
+    // Sublundo has the ability to serialize its undo history. When set to
+    // `true`, pickled `UndoTree`s will be written to Packages/User/Sublundo as
+    // <md5(path)>.sublundo-session files.
+    "persist": true,
+
+    // If a *.sublundo-session file hasn't been modified for the specified
+    // number of days, it will be deleted.
+    "delete_after_n_days": 5,
+
     // Print debug messages to the console.
-    "debug": false,
+    "debug": false
 }

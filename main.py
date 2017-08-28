@@ -17,6 +17,7 @@ We also implement a `sublundo_visualize` command, which presents a Gundo-like
 visualization of the underlying UndoTree.
 """
 import os
+from datetime import datetime, timedelta
 
 import sublime
 import sublime_plugin
@@ -258,7 +259,7 @@ class UndoEventListener(sublime_plugin.EventListener):
     def on_pre_close(self, view):
         """Save the current session.
         """
-        if util.check_view(view):
+        if util.get_setting('persist') and util.check_view(view):
             info = util.VIEW_TO_TREE[view.id()]
             util.save_session(info['tree'], info['loc'])
 
@@ -291,3 +292,17 @@ def plugin_loaded():
     history = os.path.join(sublime.packages_path(), 'User', 'Sublundo')
     if not os.path.exists(history):
         os.makedirs(history)
+
+
+def plugin_unloaded():
+    """Clean up *.sublundo-session files.
+    """
+    d = util.get_setting('delete_after_n_days', 5)
+    days_ago = datetime.now() - timedelta(days=d)
+    history = os.path.join(sublime.packages_path(), 'User', 'Sublundo')
+    for session in os.listdir(history):
+        if session.endswith('.sublundo-session'):
+            p = os.path.join(history, session)
+            modified = datetime.fromtimestamp(os.path.getmtime(p))
+            if modified > days_ago:
+                os.remove(p)
