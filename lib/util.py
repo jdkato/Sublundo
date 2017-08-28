@@ -15,6 +15,7 @@ from . import graphmod
 from . import tree
 
 SETTING_FILE = 'Sublundo.sublime-settings'
+ST_VERSION = int(sublime.version())
 
 # `CHANGE_INDEX` maps view IDs to their `change_count()`s. We use this to
 # determine when to insert into the view's UndoTree.
@@ -120,11 +121,11 @@ def set_active_group(window, view, other_group):
     return (nag, group)
 
 
-def get_setting(name):
+def get_setting(name, default=''):
     """Return the value associated with the setting `name`.
     """
     settings = sublime.load_settings(SETTING_FILE)
-    return settings.get(name, '')
+    return settings.get(name, default)
 
 
 def set_setting(name, value):

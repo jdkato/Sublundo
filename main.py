@@ -24,6 +24,32 @@ import sublime_plugin
 from .lib import util
 
 
+class SublundoOpenFileCommand(sublime_plugin.ApplicationCommand):
+    """This is a wrapper class for SublimeText's `open_file` command.
+    """
+    def run(self, f):
+        """Expand variables and open the resulting file.
+        """
+        sublime.run_command('open_file', {'file': f})
+
+    def is_visible(self):
+        """Hide if `edit_settings` is available.
+        """
+        return util.ST_VERSION < 3124
+
+
+class SublundoEditSettingsCommand(sublime_plugin.ApplicationCommand):
+    """This is a wrapper class for Sublime Text's `open_file` command.
+    """
+    def run(self, **kwargs):
+        sublime.run_command('edit_settings', kwargs)
+
+    def is_visible(self):
+        """Only visible if `edit_settings` is available.
+        """
+        return util.ST_VERSION >= 3124
+
+
 class SublundoNextNodeCommand(sublime_plugin.TextCommand):
     """SublundoNextNode implements movement in the UndoTree visualization.
 
@@ -109,8 +135,8 @@ class SublundoVisualizeCommand(sublime_plugin.TextCommand):
                 vis = window.new_file()
 
                 # Set the layout.
-                # TODO: make this a settings.
-                nag, group = util.set_active_group(window, vis, 'left')
+                side = util.get_setting('layout', 'left')
+                nag, group = util.set_active_group(window, vis, side)
 
                 util.VIS_TO_VIEW[vis.id()] = self.view
                 vis.set_name('Sublundo: History View')
@@ -133,7 +159,9 @@ class SublundoVisualizeCommand(sublime_plugin.TextCommand):
                     p = window.create_output_panel('sublundo', False)
                     p.assign_syntax('Packages/Diff/Diff.sublime-syntax')
 
-                window.run_command('show_panel', {'panel': 'output.sublundo'})
+                if util.get_setting('diff', True):
+                    window.run_command('show_panel',
+                                       {'panel': 'output.sublundo'})
             else:
                 # We were given an output view, so it's a re-draw.
                 vis = sublime.View(output)

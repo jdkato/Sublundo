@@ -1,0 +1,61 @@
+[
+    {
+        "caption": "Preferences",
+        "mnemonic": "n",
+        "id": "preferences",
+        "children":
+        [
+            {
+                "caption": "Package Settings",
+                "mnemonic": "P",
+                "id": "package-settings",
+                "children":
+                [
+                    {
+                        "caption": "Sublundo",
+                        "children":
+                        [
+                            {
+                                "caption": "Settings",
+                                "command": "sublundo_edit_settings",
+                                "args": {
+                                    "base_file": "${packages}/Sublundo/Sublundo.sublime-settings",
+                                    "default": "// Sublundo Settings - User\n{\n\t$0\n}\n"
+                                }
+                            },
+                            {
+                                "caption": "Settings - Default",
+                                "command": "sublundo_open_file",
+                                "args": {"file": "${packages}/Sublundo/Sublundo.sublime-settings"}
+                            },
+                            {
+                                "caption": "Settings - User",
+                                "command": "sublundo_open_file",
+                                "args": {"file": "${packages}/User/Sublundo.sublime-settings"}
+                            },
+                            { "caption": "-" },
+                            {
+                                "caption": "Key Bindings",
+                                "command": "sublundo_edit_settings",
+                                "args": {
+                                    "base_file": "${packages}/Sublundo/Default.sublime-keymap",
+                                    "default": "// Sublundo Key Bindings - User\n{\n\t$0\n}\n"
+                                }
+                            },
+                            {
+                                "caption": "Key Bindings - Default",
+                                "command": "sublundo_open_file",
+                                "args": {"file": "${packages}/Sublundo/Default.sublime-keymap"}
+                            },
+                            {
+                                "caption": "Key Bindings - User",
+                                "command": "sublundo_open_file",
+                                "args": {"file": "${packages}/User/Default.sublime-keymap"}
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+]
