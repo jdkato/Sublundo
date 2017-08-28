@@ -57,8 +57,4 @@ When navigating the tree, the first line of the current change will be outlined:
 
 For information on the available settings, see the [default settings file](https://github.com/libundo/Sublundo/blob/master/Sublundo.sublime-settings).
 
-## Configuration
-
-## Performance
-
 [pck-ctrl]: https://packagecontrol.io/installation "Package Control"
