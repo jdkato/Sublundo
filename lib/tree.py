@@ -11,6 +11,12 @@ from .diff_match_patch import diff_match_patch
 
 class Node:
     """A Node represents a single buffer state.
+
+    Args:
+        idx (int): The Node's ID.
+        parent (Node|None): The previous node on the current branch, if any.
+        timestamp (str): The creation date.
+        pos (int): The cursor position at the time of creation.
     """
     def __init__(self, idx, parent, timestamp, pos=None):
         self.idx = idx  # The node's unique index.
@@ -19,6 +25,14 @@ class Node:
         self.children = []
         self.patches = {}
         self.position = pos  # The node's buffer position.
+
+    def __cmp__(self, other):
+        if self.idx < other.idx:
+            return -1
+        elif self.idx > other.idx:
+            return 1
+        else:
+            return 0
 
 
 class UndoTree:
@@ -48,13 +62,11 @@ class UndoTree:
         to_add = Node(self._total, None, tm, pos)
 
         if self._root is None:
-            print('ROOOOOOT')
             self._root = to_add
         else:
             patches = self._patch(self._buf, buf)
             if not patches:
-                # `buf` is already in the tree.
-                return
+                return  # `buf` is already in the tree.
 
             parent = self._find_parent()
             to_add.parent = parent
