@@ -40,6 +40,17 @@ Each [node](https://github.com/libundo/Sublundo/blob/master/lib/tree.py#L14) con
 
 ## Usage
 
+This package completely overrides the built-in `undo` and `redo` commands: whenever you undo or redo an edit, the `sublundo` command is run instead. So, you should be able to edit, undo, and redo text as you normally would.
+
+When you want to either visualize or navigate the `UndoTree`, you invoke the `Sublundo: Visualize` command and then use the following keys to move around:
+
+- <kbd>up</kbd> (or <kbd>k</kbd>): Move up the current branch (i.e., invoke `redo`).
+- <kbd>down</kbd> (or <kbd>j</kbd>): Move down the current branch (i.e., invoke `undo`).
+- <kbd>left</kbd> (or <kbd>h</kbd>): Move to the next branch on the left.
+- <kbd>right</kbd> (or <kbd>l</kbd>): Move to the next branch on the right.
+
+When navigating the tree, the first line of the current change will be outlined:
+
 ## Configuration
 
 ## Performance
