@@ -51,6 +51,11 @@ When you want to either visualize or navigate the `UndoTree`, you invoke the `Su
 
 When navigating the tree, the first line of the current change will be outlined:
 
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/8785025/29759587-e9926006-8b71-11e7-8214-8671e9d6d2f4.png">
+</p>
+
+
 ## Configuration
 
 ## Performance
