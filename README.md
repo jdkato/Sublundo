@@ -55,6 +55,7 @@ When navigating the tree, the first line of the current change will be outlined:
   <img src="https://user-images.githubusercontent.com/8785025/29759587-e9926006-8b71-11e7-8214-8671e9d6d2f4.png">
 </p>
 
+For information on the available settings, see the [default settings file](https://github.com/libundo/Sublundo/blob/master/Sublundo.sublime-settings).
 
 ## Configuration
 
