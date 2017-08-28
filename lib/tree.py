@@ -3,6 +3,7 @@
 This module contains the implementation of a simple N-ary tree, with each node
 containing a patch that takes us from one buffer state to another.
 """
+import collections
 import datetime
 
 from .diff_match_patch import diff_match_patch
@@ -47,7 +48,7 @@ class UndoTree:
         self._b_idx = 0
         self._buf = None
         self._dmp = diff_match_patch()
-        self._index = []
+        self._index = collections.OrderedDict()
 
     def __len__(self):
         return self._total
@@ -80,7 +81,7 @@ class UndoTree:
         self._n_idx = to_add.idx
         self._buf = buf
         self.b_idx = 0
-        self._index.append(to_add)
+        self._index[self._total] = to_add
 
     def undo(self):
         """Move backward one node, if possible.
@@ -127,7 +128,7 @@ class UndoTree:
     def nodes(self):
         """Return all nodes in the tree ordered by inserted time.
         """
-        return self._index
+        return list(self._index.values())
 
     def head(self):
         """Return the current node in the tree.
@@ -157,8 +158,7 @@ class UndoTree:
     def _search(self, idx):
         """Search for the node with an index of `idx`.
         """
-        j = idx - 1
-        return self._index[j] if j < len(self._index) else None
+        return self._index.get(idx, None)
 
     def _find_parent(self):
         """Find the current parent node.
