@@ -30,7 +30,6 @@ class UndoTree:
         self._n_idx = 0
         self._b_idx = 0
         self._buf = None
-        self._undo_file = None
         self._dmp = diff_match_patch()
         self._index = collections.OrderedDict()
 
@@ -44,19 +43,20 @@ class UndoTree:
             buf (str): The contents to be inserted.
             pos (None|int): An optional integer representing a buffer position.
         """
-        if self._buf and hash(buf) == hash(self._buf):
-            # TODO: should we keep this check?
-            return
-
         self._total = self._total + 1
         tm = datetime.datetime.now().strftime('%d-%m-%Y %H-%M-%S')
         to_add = Node(self._total, None, tm, pos)
+
         if self._root is None:
+            print('ROOOOOOT')
             self._root = to_add
         else:
-            parent = self._find_parent()
             patches = self._patch(self._buf, buf)
+            if not patches:
+                # `buf` is already in the tree.
+                return
 
+            parent = self._find_parent()
             to_add.parent = parent
             to_add.patches[parent.idx] = patches[1]
 
@@ -158,6 +158,9 @@ class UndoTree:
         """Create patches for `s1` -> `s2` and `s2` -> `s1`.
         """
         d1 = self._dmp.diff_main(s1, s2)
+        if not d1 or (d1[0][0] == 0 and len(d1) == 1):  # s1 == s2
+            return []
+
         p1 = self._dmp.patch_make(s1, d1)
 
         # Instead of diffing twice, we just flip the first.

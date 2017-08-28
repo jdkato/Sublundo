@@ -52,7 +52,7 @@ def load_session(path, buf):
         try:
             with open(path, 'rb') as loc:
                 canidate = pickle.load(loc)
-            if hash(canidate.text()) == hash(buf):
+            if canidate.text() == buf:
                 return canidate, True
         except EOFError:
             pass
