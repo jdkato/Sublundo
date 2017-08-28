@@ -1,13 +1,10 @@
 {
-    // Maximum number of changes that can be undone.
-    "undolevels": 100,
-
     // Determines if the visualization is shown on the "left" or "right".
     "layout": "left",
 
-    // Show a diff panel at the bottom of a isualization.
+    // Show a diff panel at the bottom of the visualization.
     "diff": true,
 
     // Print debug messages to the console.
-    "debug": true,
+    "debug": false,
 }
