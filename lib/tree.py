@@ -5,7 +5,6 @@ containing a patch that takes us from one buffer state to another.
 """
 import collections
 import datetime
-import os
 
 from .diff_match_patch import diff_match_patch
 
