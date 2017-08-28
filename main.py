@@ -28,8 +28,6 @@ class SublundoOpenFileCommand(sublime_plugin.ApplicationCommand):
     """This is a wrapper class for SublimeText's `open_file` command.
     """
     def run(self, f):
-        """Expand variables and open the resulting file.
-        """
         sublime.run_command('open_file', {'file': f})
 
     def is_visible(self):
@@ -39,7 +37,7 @@ class SublundoOpenFileCommand(sublime_plugin.ApplicationCommand):
 
 
 class SublundoEditSettingsCommand(sublime_plugin.ApplicationCommand):
-    """This is a wrapper class for Sublime Text's `open_file` command.
+    """This is a wrapper class for Sublime Text's `edit_settings` command.
     """
     def run(self, **kwargs):
         sublime.run_command('edit_settings', kwargs)
@@ -53,7 +51,7 @@ class SublundoEditSettingsCommand(sublime_plugin.ApplicationCommand):
 class SublundoNextNodeCommand(sublime_plugin.TextCommand):
     """SublundoNextNode implements movement in the UndoTree visualization.
 
-    This command is bound to the up (or 'j') and down (or 'k') keys by default.
+    This is bound to the up (or 'j') and down (or 'k') keys by default.
     """
     def run(self, edit, forward=0):
         """Move to the next node in the tree, if available.
@@ -90,6 +88,8 @@ class SublundoNextNodeCommand(sublime_plugin.TextCommand):
 
 class SublundoSwitchBranchCommand(sublime_plugin.TextCommand):
     """SublundoSwitchBranch controls branch switching in a visualization.
+
+    This is bound to the left (or 'h') and right (or 'l') keys by default.
     """
     def run(self, edit, forward=0):
         """Switch to the next branch (as indicated by `forward`), if possible.
@@ -189,6 +189,7 @@ class SublundoCommand(sublime_plugin.TextCommand):
 
         Args:
             command (str): 'undo', 'redo', or 'redo_or_repeat'.
+            in_vis (bool): `True` if we were called from `sublundo_next_node`.
         """
         t = util.VIEW_TO_TREE[self.view.id()]['tree']
         pos = 0
@@ -271,6 +272,9 @@ class UndoEventListener(sublime_plugin.EventListener):
 
     def on_post_text_command(self, view, command_name, args):
         """Update the tree.
+
+        We only update the tree if `view.change_count()` has been incremented
+        since we last checked. TODO: should this be a setting?
         """
         if command_name != 'sublundo' and view.id() in util.CHANGE_INDEX:
             if util.CHANGE_INDEX[view.id()] != view.change_count():
