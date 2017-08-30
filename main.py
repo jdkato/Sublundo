@@ -200,20 +200,19 @@ class SublundoCommand(sublime_plugin.TextCommand):
             buf, diff, pos = t.redo()
 
         self.view.replace(edit, sublime.Region(0, self.view.size()), buf)
-        if pos and in_vis:
-            # Draw an outline around the line that's changing.
-            line = self.view.full_line(pos)
+
+        line = self.view.full_line(pos)
+        self.view.show(line)
+
+        p = sublime.active_window().find_output_panel('sublundo')
+        if all([p, diff, in_vis]):
+            p.replace(edit, sublime.Region(0, p.size()), diff)
             self.view.add_regions(
                 'sublundo',
                 [line],
                 'invalid',
                 '',
                 sublime.DRAW_NO_FILL)
-            self.view.show(line)
-
-        p = sublime.active_window().find_output_panel('sublundo')
-        if p and diff:
-            p.replace(edit, sublime.Region(0, p.size()), diff)
 
 
 class UndoEventListener(sublime_plugin.EventListener):
@@ -281,7 +280,7 @@ class UndoEventListener(sublime_plugin.EventListener):
             if util.CHANGE_INDEX[view.id()] != view.change_count():
                 util.VIEW_TO_TREE[view.id()]['tree'].insert(
                     util.buffer(view),
-                    view.sel()[0].begin()
+                    view.sel()[0].a
                 )
                 util.CHANGE_INDEX[view.id()] = view.change_count()
 
