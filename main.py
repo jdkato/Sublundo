@@ -1,7 +1,7 @@
 """main.py
 
 This module is the main entry point into the package. A high-level summary of
-the plugin follows:
+the plugin follows   :
 
     * Watch for view `on_activated` events, assigning each view its own
       UndoTree, which we store in `util.VIEW_TO_TREE` for easy access.
@@ -201,15 +201,17 @@ class SublundoCommand(sublime_plugin.TextCommand):
 
         self.view.replace(edit, sublime.Region(0, self.view.size()), buf)
 
-        line = self.view.full_line(pos)
-        self.view.show(line)
+        # Re-position the cursor.
+        self.view.sel().clear()
+        self.view.sel().add(sublime.Region(pos))
+        self.view.show(pos)
 
         p = sublime.active_window().find_output_panel('sublundo')
         if all([p, diff, in_vis]):
             p.replace(edit, sublime.Region(0, p.size()), diff)
             self.view.add_regions(
                 'sublundo',
-                [line],
+                [self.view.full_line(pos)],
                 'invalid',
                 '',
                 sublime.DRAW_NO_FILL)
@@ -230,7 +232,7 @@ class UndoEventListener(sublime_plugin.EventListener):
                 util.debug('Loaded session for {0}.'.format(name))
             else:
                 util.debug('Failed to load session for {0}.'.format(name))
-                t.insert(buf, 0)
+                t.insert(buf, view.sel()[0].a)
             util.VIEW_TO_TREE[view.id()] = {'tree': t, 'loc': loc}
             util.CHANGE_INDEX[view.id()] = 0
 
