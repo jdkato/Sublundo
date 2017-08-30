@@ -1,8 +1,7 @@
-# Sublundo [![Build Status](https://travis-ci.org/libundo/Sublundo.svg?branch=master)](https://travis-ci.org/libundo/Sublundo) [![Build status](https://ci.appveyor.com/api/projects/status/2hs94fgrhds5dh5a?svg=true)](https://ci.appveyor.com/project/libundo/sublundo) [![PEP8](https://img.shields.io/badge/code%20style-pep8-orange.svg)](https://www.python.org/dev/peps/pep-0008/) [![Sublime Text version](https://img.shields.io/badge/sublime%20text-v3103%2B-blue.svg)](https://www.sublimetext.com/3) [![codebeat badge](https://codebeat.co/badges/fdbbebac-f1fd-411d-adee-4cc00cc55412)](https://codebeat.co/projects/github-com-libundo-sublundo-master)
-
+# Sublundo [![Build Status](https://travis-ci.org/libundo/Sublundo.svg?branch=master)](https://travis-ci.org/libundo/Sublundo) [![Build status](https://ci.appveyor.com/api/projects/status/2hs94fgrhds5dh5a?svg=true)](https://ci.appveyor.com/project/libundo/sublundo) [![PEP8](https://img.shields.io/badge/code%20style-pep8-orange.svg)](https://www.python.org/dev/peps/pep-0008/) [![Sublime Text version](https://img.shields.io/badge/sublime%20text-v3103%2B-blue.svg)](https://www.sublimetext.com/3) [![codebeat badge](https://codebeat.co/badges/fdbbebac-f1fd-411d-adee-4cc00cc55412)](https://codebeat.co/projects/github-com-libundo-sublundo-master) [![Package Control](https://img.shields.io/packagecontrol/dt/Sublundo.svg)](https://packagecontrol.io/packages/Sublundo)
 
 <p align="center">
-  <img alt="screenshot" src="https://user-images.githubusercontent.com/8785025/29700228-b4a4ae6e-8917-11e7-9dcb-318680979153.png">
+  <img alt="sublundo" src="https://user-images.githubusercontent.com/8785025/29885633-627d89ae-8d6c-11e7-9886-ccd389d18317.png">
 </p>
 
 > **NOTE**: This package is in early development. Use with caution.
@@ -12,7 +11,7 @@ Sublundo brings Vim-like persistent, branching undo/redo to Sublime Text 3. It w
 However, since Sublime Text doesn't have native support for branching undo like Vim, we had to build our own data structure&mdash;the [`UndoTree`](https://github.com/libundo/Sublundo/blob/master/lib/tree.py#L26). An `UndoTree` is a [full N-ary tree](https://en.wikipedia.org/wiki/K-ary_tree) containing nodes that represent a particular buffer state:
 
 <p align="center">
-  <img width="320" alt="tree diagram" src="https://user-images.githubusercontent.com/8785025/29751984-4a0c46b2-8b0a-11e7-90c2-ad09df5e75df.png">
+  <img width="320" alt="tree" src="https://user-images.githubusercontent.com/8785025/29885744-baac1096-8d6c-11e7-8105-f17b3bbe20d0.png">
 </p>
 
 Each [node](https://github.com/libundo/Sublundo/blob/master/lib/tree.py#L14) contains, among other attributes, a map associating node IDs to [patches](https://en.wikipedia.org/wiki/Patch_(Unix)). This means that, instead of having to store the entire buffer for each insertion (which often consists of small changes), we only need to store the information necessary to travel back and forth (in both the `parent → children` and `child → parent` directions). For example: if `A = 'Hello, world!'` and `B = 'Bye, world!'`, the `A → B` translation would be `[(-1, 'H'), (1, 'By'), (0, 'e'), (-1, 'llo'), (0, ', wo')]`. In Python terms, we'd have:
@@ -30,7 +29,7 @@ Each [node](https://github.com/libundo/Sublundo/blob/master/lib/tree.py#L14) con
 'Hello, world!'
 ```
 
-## Installation (pending Package Control approval)
+## Installation
 
 1. Install [Package Control][pck-ctrl].
 3. Bring up the Command Palette
@@ -48,12 +47,6 @@ When you want to either visualize or navigate the `UndoTree`, you invoke the `Su
 - <kbd>down</kbd> (or <kbd>j</kbd>): Move down the current branch (i.e., invoke `undo`).
 - <kbd>left</kbd> (or <kbd>h</kbd>): Move to the next branch on the left.
 - <kbd>right</kbd> (or <kbd>l</kbd>): Move to the next branch on the right.
-
-When navigating the tree, the first line of the current change will be outlined:
-
-<p align="center">
-  <img src="https://user-images.githubusercontent.com/8785025/29759587-e9926006-8b71-11e7-8214-8671e9d6d2f4.png">
-</p>
 
 For information on the available settings, see the [default settings file](https://github.com/libundo/Sublundo/blob/master/Sublundo.sublime-settings).
 
