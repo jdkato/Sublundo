@@ -1,0 +1,5 @@
+# Sublundo v0.2.0
+
+* Updated README to represent that we're on Package Control.
+* We now call `view.show` wheneven `sublundo` is run (instead of just while
+  showing the tree).
