@@ -164,7 +164,7 @@ class UndoTree:
         """Find the current parent node.
         """
         maybe = self.head()
-        if maybe.parent is not None and self._b_idx in maybe.parent.children:
+        if maybe.parent is not None and self._b_idx < len(maybe.parent):
             return maybe.parent.children[self._b_idx]
         else:
             return maybe
