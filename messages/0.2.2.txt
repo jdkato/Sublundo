@@ -1,0 +1,3 @@
+# Sublundo v0.2.2
+
+* Fixed a branch-switching edge case
