@@ -1,0 +1,3 @@
+# Sublundo v0.2.3
+
+* Fixed syntax when several branches are visible (thanks to @gwenzek!)
