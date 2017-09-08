@@ -4,17 +4,15 @@
   <img alt="sublundo" src="https://user-images.githubusercontent.com/8785025/29885633-627d89ae-8d6c-11e7-9886-ccd389d18317.png">
 </p>
 
-> **NOTE**: This package is in early development. Use with caution.
-
 Sublundo brings Vim-like persistent, branching undo/redo to Sublime Text 3. It was inspired by [Gundo](https://sjl.bitbucket.io/gundo.vim/) (and its successor, [Mundo](http://simnalamburt.github.io/vim-mundo/dist/)).
 
-However, since Sublime Text doesn't have native support for branching undo like Vim, we had to build our own data structure&mdash;the [`UndoTree`](https://github.com/libundo/Sublundo/blob/master/lib/tree.py#L26). An `UndoTree` is a [full N-ary tree](https://en.wikipedia.org/wiki/K-ary_tree) containing nodes that represent a particular buffer state:
+However, since Sublime Text doesn't have native support for branching undo like Vim, we had to build our own data structure&mdash;the [`UndoTree`](https://github.com/libundo/Sublundo/blob/master/lib/tree.py#L41). An `UndoTree` is an [N-ary tree](https://en.wikipedia.org/wiki/K-ary_tree) containing nodes that represent a particular buffer state:
 
 <p align="center">
   <img width="320" alt="tree" src="https://user-images.githubusercontent.com/8785025/29885744-baac1096-8d6c-11e7-8105-f17b3bbe20d0.png">
 </p>
 
-Each [node](https://github.com/libundo/Sublundo/blob/master/lib/tree.py#L14) contains, among other attributes, a map associating node IDs to [patches](https://en.wikipedia.org/wiki/Patch_(Unix)). This means that, instead of having to store the entire buffer for each insertion (which often consists of small changes), we only need to store the information necessary to travel back and forth (in both the `parent → children` and `child → parent` directions). For example: if `A = 'Hello, world!'` and `B = 'Bye, world!'`, the `A → B` translation would be `[(-1, 'H'), (1, 'By'), (0, 'e'), (-1, 'llo'), (0, ', wo')]`. In Python terms, we'd have:
+Each [node](https://github.com/libundo/Sublundo/blob/master/lib/tree.py#L12) contains, among other attributes, a map associating node IDs to [patches](https://en.wikipedia.org/wiki/Patch_(Unix)). This means that, instead of having to store the entire buffer for each insertion (which often consists of small changes), we only need to store the information necessary to travel back and forth (in both the `parent → children` and `child → parent` directions). For example: if `A = 'Hello, world!'` and `B = 'Bye, world!'`, the `A → B` translation would be `[(-1, 'H'), (1, 'By'), (0, 'e'), (-1, 'llo'), (0, ', wo')]`. In Python terms, we'd have:
 
 ```python
 >>> t = UndoTree()
