@@ -1,9 +1,23 @@
 # SYNTAX TEST "Packages/Sublundo/Sublundo.sublime-syntax"
 
-o  [2] 11 hours ago
-#      ^ comment.sublundo.tree.label
+o  5 11 hours ago
+#    ^ comment.tree.label.sublundo
 |
-o  [1] Root
-#   ^ constant.other.sublundo.tree.index
-#      ^ comment.sublundo.tree.label
+| o  4 5 seconds ago
+# <- punctuation.tree.branch.sublundo
+# ^ punctuation.tree.node.sublundo
+#    ^ constant.numeric.tree.index.sublundo
+#      ^ comment.tree.label.sublundo
+| |
+o |  3 29 seconds ago
+# <- punctuation.tree.node.sublundo
+# ^ punctuation.tree.branch.sublundo
+#    ^ constant.numeric.tree.index.sublundo
+#      ^ comment.tree.label.sublundo
+|/
+o  2 33 seconds ago
+|
+@  [1] Root
+#   ^ constant.numeric.tree.index.sublundo
+#      ^ comment.tree.label.sublundo
 

@@ -6,13 +6,16 @@ hidden: true
 scope: text.sublundo.tree
 contexts:
   main:
-    - match: '(o)  (\d+) (.+)$'
+    - match: '\||/'
+      scope: punctuation.tree.branch.sublundo
+    - match: \bo\b
+      scope: punctuation.tree.node.sublundo
+    - match: '  (\d+) (.+)$'
       captures:
-        1: meta.sublundo.tree.node
-        2: constant.other.sublundo.tree.index
-        3: comment.sublundo.tree.label
-    - match: '(@)  (\[\d+\]) (.+)$'
+        1: constant.numeric.tree.index.sublundo
+        2: comment.tree.label.sublundo
+    - match: '(@)  (\[?\d+\]) (.+)$'
       captures:
-        1: keyword.other.sublundo.tree.position
-        2: constant.other.sublundo.tree.index
-        3: comment.sublundo.tree.label
+        1: keyword.other.tree.position.sublundo
+        2: constant.numeric.tree.index.sublundo
+        3: comment.tree.label.sublundo
